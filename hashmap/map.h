@@ -1,0 +1,28 @@
+#include "../list/list.h"
+
+#define NUM_BUCKETS 977
+#define KEY_TYPE char *
+
+// #define MAP_VERBOSE(...) printf(__VA_ARGS__)
+#define MAP_VERBOSE(...)
+
+// #define MAP_HASHING_FUNCTION crc32b
+#define MAP_HASHING_FUNCTION map_internal_hash
+
+typedef struct {
+  KEY_TYPE key;
+  void *value;
+} BucketContent;
+
+typedef struct {
+  ListNode *values;
+} Bucket;
+
+typedef struct {
+  Bucket *buckets;
+} HashMap;
+
+HashMap *hashmap_new();
+void hashmap_insert(HashMap *map, KEY_TYPE key, void *value);
+bool hashmap_get(HashMap *map, KEY_TYPE key, void **result_value);
+void hashmap_print_buckets(HashMap *map);
