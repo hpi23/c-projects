@@ -71,7 +71,7 @@ ListGetResult list_at(struct ListNode *list, uint64_t index) {
   return result;
 }
 
-void list_delete(struct ListNode *list) {
+void list_free(struct ListNode *list) {
   assert(list != NULL);
   while (list->next != NULL) {
     struct ListNode *next = list->next;
@@ -79,4 +79,33 @@ void list_delete(struct ListNode *list) {
     list = next;
   }
   free(list);
+}
+
+void list_delete_index(struct ListNode *list, ssize_t index) {
+  assert(list != NULL);
+
+  ListNode *prev = NULL;
+
+  for (int count = 0; (list != NULL && list->is_initialized) && count <= index;
+       count++) {
+    if (index == count) {
+
+      if (index == 0) {
+        if (list->next != NULL) {
+          printf("hi\n");
+          *list = *list->next;
+        } else {
+          list->is_initialized = false;
+        }
+      } else {
+        prev->next = list->next;
+        free(list);
+      }
+
+      return;
+    }
+
+    list = list->next;
+    prev = list;
+  }
 }

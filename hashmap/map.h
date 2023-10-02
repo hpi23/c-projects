@@ -31,5 +31,5 @@ HashMap *hashmap_new();
 void hashmap_insert(HashMap *map, KEY_TYPE key, void *value);
 MapGetResult hashmap_get(HashMap *map, KEY_TYPE key);
 void hashmap_print_buckets(HashMap *map);
-void hashmap_delete(HashMap *map, KEY_TYPE key);
+bool hashmap_delete(HashMap *map, KEY_TYPE key);
 void hashmap_free(HashMap *map);

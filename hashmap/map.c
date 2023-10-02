@@ -164,7 +164,41 @@ void hashmap_print_buckets(HashMap *map) {
   }
 }
 
-void hashmap_delete(HashMap *map, KEY_TYPE key) {}
+bool bucket_delete_key(Bucket * bucket, KEY_TYPE key) {
+  assert(bucket != NULL);
+  ssize_t bucket_len = list_len(bucket->values);
+
+  for (int i = 0; i < bucket_len; i++) {
+    ListGetResult list_res = list_at(bucket->values, i);
+    assert(list_res.found);
+    BucketContent *content = (BucketContent *)list_res.value;
+
+    MAP_VERBOSE("probing bucket content (bucket key %s | key %s)\n",
+                content->key, key);
+
+    // if the key exists, return the bucket content
+    if (strcmp(content->key, key) == 0) {
+        // DELETE THIS
+        list_delete_index(i);
+        free(content);
+    }
+  }
+
+  return false;
+}
+
+bool hashmap_delete(HashMap *map, KEY_TYPE key) {
+  assert(map != NULL);
+  assert(key != NULL);
+
+  u_int16_t hash = MAP_HASHING_FUNCTION(key);
+  ssize_t index = hash % NUM_BUCKETS;
+
+  MAP_VERBOSE("Key %s | Hash %d | Index %ld\n", key, hash, index);
+  MAP_VERBOSE("Deleting key %s from bucket at %ld\n", key, index);
+
+  return bucket_delete_key(&map->buckets[index], key);
+}
 
 // free contents
 
