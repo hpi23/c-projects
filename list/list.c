@@ -52,20 +52,23 @@ ssize_t list_len(struct ListNode *list) {
 }
 
 // if this returns false, the index does not exist
-bool list_at(struct ListNode *list, uint64_t index, void **result) {
+ListGetResult list_at(struct ListNode *list, uint64_t index) {
   assert(list != NULL);
+
+  ListGetResult result = {.found = false, .value = NULL};
+
   for (int count = 0; (list != NULL && list->is_initialized) && count <= index;
        count++) {
     if (index == count) {
-      assert(result != NULL);
-      *result = list->value;
-      return true;
+      result.value = list->value;
+      result.found = true;
+      return result;
     }
 
     list = list->next;
   }
 
-  return false;
+  return result;
 }
 
 void list_delete(struct ListNode *list) {

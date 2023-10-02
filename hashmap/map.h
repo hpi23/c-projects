@@ -10,6 +10,11 @@
 #define MAP_HASHING_FUNCTION map_internal_hash
 
 typedef struct {
+  bool found;
+  void *value;
+} MapGetResult;
+
+typedef struct {
   KEY_TYPE key;
   void *value;
 } BucketContent;
@@ -24,5 +29,7 @@ typedef struct {
 
 HashMap *hashmap_new();
 void hashmap_insert(HashMap *map, KEY_TYPE key, void *value);
-bool hashmap_get(HashMap *map, KEY_TYPE key, void **result_value);
+MapGetResult hashmap_get(HashMap *map, KEY_TYPE key);
 void hashmap_print_buckets(HashMap *map);
+void hashmap_delete(HashMap *map, KEY_TYPE key);
+void hashmap_free(HashMap *map);

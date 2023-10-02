@@ -47,8 +47,9 @@ Bucket bucket_new() {
 // Initializes a new bucket content struct
 BucketContent bucket_content_new(char *key, void *value) {
   BucketContent content;
-  content.key = (char *)malloc(strlen(key) + 1);
-  strcpy(content.key, key);
+  char *content_key = (char *)malloc(strlen(key) + 1);
+  strcpy(content_key, key);
+  content.key = content_key;
   content.value = value;
   return content;
 }
@@ -72,8 +73,9 @@ void bucket_insert_value(Bucket *bucket, KEY_TYPE key, void *value) {
   ssize_t bucket_len = list_len(bucket->values);
 
   for (int i = 0; i < bucket_len; i++) {
-    BucketContent *content = (BucketContent *)malloc(sizeof(BucketContent));
-    assert(list_at(bucket->values, i, (void **)&content));
+    ListGetResult result = list_at(bucket->values, i);
+    assert(result.found);
+    BucketContent *content = (BucketContent *)result.value;
 
     MAP_VERBOSE("probing bucket content (bucket key %s | key %s)\n",
                 content->key, key);
@@ -87,10 +89,10 @@ void bucket_insert_value(Bucket *bucket, KEY_TYPE key, void *value) {
     }
   }
 
-  // in this case, the key does not exist in this bucket, insert it
   BucketContent *content = (BucketContent *)malloc(sizeof(BucketContent));
-  content->key = (char *)malloc(strlen(key) + 1);
 
+  // in this case, the key does not exist in this bucket, insert it
+  content->key = (char *)malloc(strlen(key) + 1);
   strcpy(content->key, key);
 
   MAP_VERBOSE("new bucket content str: %s\n", content->key);
@@ -102,24 +104,28 @@ void bucket_insert_value(Bucket *bucket, KEY_TYPE key, void *value) {
               list_len(bucket->values));
 }
 
-bool bucket_get_value(Bucket *bucket, KEY_TYPE key, void **return_value) {
+MapGetResult bucket_get_value(Bucket *bucket, KEY_TYPE key) {
   assert(bucket != NULL);
   ssize_t bucket_len = list_len(bucket->values);
 
+  MapGetResult result = {.found = false, .value = NULL};
+
   for (int i = 0; i < bucket_len; i++) {
-    BucketContent *content = (BucketContent *)malloc(sizeof(BucketContent));
-    assert(list_at(bucket->values, i, (void **)&content));
+    ListGetResult list_res = list_at(bucket->values, i);
+    assert(list_res.found);
+    BucketContent *content = (BucketContent *)list_res.value;
 
     MAP_VERBOSE("probing bucket content (bucket key %s | key %s)\n",
                 content->key, key);
 
     // if the key exists, return the bucket content
     if (strcmp(content->key, key) == 0) {
-      *return_value = content->value;
-      return true;
+      result.value = content->value;
+      result.found = true;
+      return result;
     }
   }
-  return false;
+  return result;
 }
 
 void hashmap_insert(HashMap *map, KEY_TYPE key, void *value) {
@@ -135,7 +141,7 @@ void hashmap_insert(HashMap *map, KEY_TYPE key, void *value) {
   bucket_insert_value(&map->buckets[index], key, value);
 }
 
-bool hashmap_get(HashMap *map, KEY_TYPE key, void **return_value) {
+MapGetResult hashmap_get(HashMap *map, KEY_TYPE key) {
   assert(map != NULL);
   assert(key != NULL);
 
@@ -146,7 +152,7 @@ bool hashmap_get(HashMap *map, KEY_TYPE key, void **return_value) {
 
   MAP_VERBOSE("Retrieving key %s from bucket at %ld\n", key, index);
 
-  return bucket_get_value(&map->buckets[index], key, return_value);
+  return bucket_get_value(&map->buckets[index], key);
 }
 
 void hashmap_print_buckets(HashMap *map) {
@@ -156,4 +162,30 @@ void hashmap_print_buckets(HashMap *map) {
 
     printf("Bucket %d has length %ld\n", i, bucket_len);
   }
+}
+
+void hashmap_delete(HashMap *map, KEY_TYPE key) {}
+
+// free contents
+
+void bucket_free(Bucket bucket) {
+  ssize_t len = list_len(bucket.values);
+  for (ssize_t i = 0; i < len; i++) {
+    ListGetResult result = list_at(bucket.values, i);
+    assert(result.found);
+    BucketContent *content = (BucketContent *)result.value;
+
+    free(content->key);
+    free(content);
+  }
+
+  list_delete(bucket.values);
+}
+
+void hashmap_free(HashMap *map) {
+  for (int i = 0; i < NUM_BUCKETS; i++) {
+    bucket_free(map->buckets[i]);
+  }
+  free(map->buckets);
+  free(map);
 }
