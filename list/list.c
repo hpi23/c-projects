@@ -92,7 +92,6 @@ void list_delete_index(struct ListNode *list, ssize_t index) {
 
       if (index == 0) {
         if (list->next != NULL) {
-          printf("hi\n");
           *list = *list->next;
         } else {
           list->is_initialized = false;
