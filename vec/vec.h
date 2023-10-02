@@ -1,35 +1,24 @@
-#include <stdint.h>
 #include <assert.h>
+#include <stdint.h>
+#include <stdio.h>
 
-#def VALUE_TYPE int
-#def DEFAULT_CAPACITY 0
+#define VALUE_TYPE int
+#define DEFAULT_CAPACITY 1
+
+#define VEC_VERBOSE(...) printf(__VA_ARGS__)
+//#define VEC_VERBOSE(...)
 
 typedef struct {
-    VALUE_TYPE *values;
-    ssize_t capacity;
-    ssize_t used;
+  VALUE_TYPE *values;
+  ssize_t capacity;
+  ssize_t used;
 } Vec;
 
-
-Vec * vec_new_with_capacity(ssize_t capacity) {
-    Vec * vec_temp = (Vec *) malloc(sizeof(Vec));
-    vec_temp->capacity = capacity;
-    vec_temp->used = 0;
-    vec_temp->values = malloc(sizeof(VALUE_TYPE) * vec_temp->capacity);
-    return vec_temp;
-}
-
-Vec * vec_new() {
-    Vec * vec_temp = vec_new_with_capacity(DEFAULT_CAPACITY);
-    return vec_temp;
-}
-
-void vec_push(Vec * vec, VALUE_TYPE value) {
-    assert(vec != NULL);
-    if (vec->capacity <= vec->used) {
-        vec_grow_to_size(vec, vec->capacity * 2);
-    }
-    void * ptr = &vec->values[vec->used];
-    vec->used++;
-    *ptr = value;
-}
+Vec *vec_new_with_capacity(ssize_t capacity);
+Vec *vec_new();
+void vec_push(Vec *vec, VALUE_TYPE value);
+void vec_pop(Vec *vec);
+void vec_shrink_to_fit(Vec *vec);
+void vec_print(Vec *vec);
+VALUE_TYPE vec_index(Vec *vec, ssize_t index);
+void vec_free(Vec * vec);

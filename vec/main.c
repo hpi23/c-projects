@@ -1,4 +1,4 @@
-#include "./list.h"
+#include "./vec.h"
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -32,20 +32,21 @@
 // }
 
 int main(void) {
-  ListNode *list = list_new();
-  for (int i = 0; i < 3; i++) {
-    int *num = malloc(sizeof(num));
-    *num = i;
-    list_append(list, num);
-  }
+  Vec *vec = vec_new();
+  for (int i = 0; i < 10; i++)
+    vec_push(vec, 10 - i);
+  vec_print(vec);
+  printf("%d\n", vec_index(vec, 2));
 
-  list_print(list);
-  list_delete_index(list, 0);
-  list_print(list);
-  list_delete_index(list, 0);
-  list_print(list);
-  list_delete_index(list, 0);
-  list_print(list);
+  vec_pop(vec);
+  vec_pop(vec);
+  vec_pop(vec);
+  vec_pop(vec);
 
-  // list_free(list);
+  vec_print(vec);
+  vec_shrink_to_fit(vec);
+  vec_print(vec);
+  vec_push(vec, 42);
+  vec_print(vec);
+  vec_free(vec);
 }
