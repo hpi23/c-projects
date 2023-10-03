@@ -55,11 +55,11 @@ BucketContent bucket_content_new(char *key, void *value) {
 }
 
 // Initializes a new HashMap
-HashMap hashmap_new() {
-  HashMap map;
-  map.buckets = (Bucket *)malloc(sizeof(Bucket *) * NUM_BUCKETS);
+HashMap * hashmap_new() {
+  HashMap * map = malloc(sizeof(HashMap));
+  map->buckets = (Bucket *)malloc(sizeof(Bucket *) * NUM_BUCKETS);
   for (int i = 0; i < NUM_BUCKETS; i++) {
-    map.buckets[i] = bucket_new();
+    map->buckets[i] = bucket_new();
   }
   return map;
 }
@@ -230,11 +230,12 @@ ListNode *hashmap_keys(HashMap *map) {
   for (int bucket_idx = 0; bucket_idx < NUM_BUCKETS; bucket_idx++) {
     Bucket bucket = map->buckets[bucket_idx];
     ssize_t bucket_len = list_len(bucket.values);
-    for (int value_idx = 0; value_idx < bucket_len; value_idx++) {
-      ListGetResult get_result = list_at(list, value_idx);
-      assert(get_result.found);
-      BucketContent *bucket_content = (BucketContent *)get_result.value;
-      list_append(list, bucket_content->key);
+
+    for (ssize_t i = 0; i < bucket_len; i++) {
+        ListGetResult res = list_at(bucket.values, i);
+        assert(res.found);
+        BucketContent * bc = (BucketContent *) res.value;
+        list_append(list, bc->key);
     }
   }
 

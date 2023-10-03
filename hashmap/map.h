@@ -1,7 +1,7 @@
 #pragma once
 #include "../list/list.h"
 
-#define NUM_BUCKETS 977
+#define NUM_BUCKETS 8
 #define KEY_TYPE char *
 
 // #define MAP_VERBOSE(...) printf(__VA_ARGS__)
@@ -28,7 +28,7 @@ typedef struct {
   Bucket *buckets;
 } HashMap;
 
-HashMap hashmap_new();
+HashMap * hashmap_new();
 void hashmap_insert(HashMap *map, KEY_TYPE key, void *value);
 MapGetResult hashmap_get(HashMap *map, KEY_TYPE key);
 void hashmap_print_buckets(HashMap *map);
