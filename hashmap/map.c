@@ -55,13 +55,12 @@ BucketContent bucket_content_new(char *key, void *value) {
 }
 
 // Initializes a new HashMap
-HashMap *hashmap_new() {
-  HashMap *map = (HashMap *)malloc(sizeof(HashMap));
-  map->buckets = (Bucket *)malloc(sizeof(Bucket *) * NUM_BUCKETS);
+HashMap hashmap_new() {
+  HashMap map;
+  map.buckets = (Bucket *)malloc(sizeof(Bucket *) * NUM_BUCKETS);
   for (int i = 0; i < NUM_BUCKETS; i++) {
-    map->buckets[i] = bucket_new();
+    map.buckets[i] = bucket_new();
   }
-
   return map;
 }
 
@@ -164,7 +163,7 @@ void hashmap_print_buckets(HashMap *map) {
   }
 }
 
-bool bucket_delete_key(Bucket * bucket, KEY_TYPE key) {
+bool bucket_delete_key(Bucket *bucket, KEY_TYPE key) {
   assert(bucket != NULL);
   ssize_t bucket_len = list_len(bucket->values);
 
@@ -176,11 +175,11 @@ bool bucket_delete_key(Bucket * bucket, KEY_TYPE key) {
     MAP_VERBOSE("probing bucket content (bucket key %s | key %s)\n",
                 content->key, key);
 
-    // if the key exists, return the bucket content
+    // if the key exists, delete it from the bucket
     if (strcmp(content->key, key) == 0) {
-        // DELETE THIS
-        list_delete_index(i);
-        free(content);
+      // DELETE THIS
+      list_delete_index(bucket->values, i);
+      free(content);
     }
   }
 
@@ -213,7 +212,7 @@ void bucket_free(Bucket bucket) {
     free(content);
   }
 
-  list_delete(bucket.values);
+  list_free(bucket.values);
 }
 
 void hashmap_free(HashMap *map) {
@@ -222,4 +221,22 @@ void hashmap_free(HashMap *map) {
   }
   free(map->buckets);
   free(map);
+}
+
+ListNode *hashmap_keys(HashMap *map) {
+  ListNode *list = list_new();
+
+  // iterate over all buckets first
+  for (int bucket_idx = 0; bucket_idx < NUM_BUCKETS; bucket_idx++) {
+    Bucket bucket = map->buckets[bucket_idx];
+    ssize_t bucket_len = list_len(bucket.values);
+    for (int value_idx = 0; value_idx < bucket_len; value_idx++) {
+      ListGetResult get_result = list_at(list, value_idx);
+      assert(get_result.found);
+      BucketContent *bucket_content = (BucketContent *)get_result.value;
+      list_append(list, bucket_content->key);
+    }
+  }
+
+  return list;
 }

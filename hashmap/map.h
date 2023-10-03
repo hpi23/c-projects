@@ -1,3 +1,4 @@
+#pragma once
 #include "../list/list.h"
 
 #define NUM_BUCKETS 977
@@ -27,9 +28,10 @@ typedef struct {
   Bucket *buckets;
 } HashMap;
 
-HashMap *hashmap_new();
+HashMap hashmap_new();
 void hashmap_insert(HashMap *map, KEY_TYPE key, void *value);
 MapGetResult hashmap_get(HashMap *map, KEY_TYPE key);
 void hashmap_print_buckets(HashMap *map);
 bool hashmap_delete(HashMap *map, KEY_TYPE key);
 void hashmap_free(HashMap *map);
+ListNode * hashmap_keys(HashMap *map);
