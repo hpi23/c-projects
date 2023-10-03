@@ -2,16 +2,31 @@
 
 typedef struct {
   char *error;
+  char *key;
+  JsonValue *value;
+} ParseResultObjectField;
+
+typedef struct {
+  char *error;
   JsonValueObject value;
 } ParseResultObject;
 
 typedef struct {
-    Token curr_tok;
-    Lexer lexer;
-} Parser;
+  Token curr_tok;
+  Lexer lexer;
+} JsonParser;
 
+typedef struct {
+  char *error;
+  JsonParser parser;
+} NewJsonParserResult;
 
-char * parser_next(Parser * parser);
-ParseResult parse_json(Parser *, char *input);
-ParseResultObject parse_object(Parser *parser);
-ParseResult parse_json(Parser *, char *input);
+typedef struct {
+  char *error;
+  JsonValue value;
+} JsonParseResult;
+
+char *parser_next(JsonParser *parser);
+NewJsonParserResult parser_new(char *input);
+JsonParseResult parse_json(JsonParser *);
+ParseResultObject parse_object(JsonParser *parser);

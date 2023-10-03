@@ -1,5 +1,9 @@
-#include "./token.h"
+#include "../hashmap/map.h"
+#include "../list/list.h"
 #include "./lexer.h"
+#include "./token.h"
+#include <stdint.h>
+#include <sys/types.h>
 
 typedef enum {
   JSON_TYPE_OBJECT,
@@ -10,15 +14,20 @@ typedef enum {
   JSON_TYPE_STRING,
 } JsonType;
 
+typedef struct {
+  HashMap * fields;
+} JsonValueObject;
+
+typedef struct {
+  ListNode fields;
+} JsonValueArray;
 
 typedef struct {
   JsonType type;
+  JsonValueObject object;
+  JsonValueArray array;
+  double num_float;
+  int64_t num_int;
 } JsonValue;
 
-typedef struct {
-  char *error;
-  JsonValue value;
-} ParseResult;
-
-typedef struct {
-} JsonValueObject;
+void json_print_value(JsonValue value);

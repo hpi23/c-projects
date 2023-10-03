@@ -1,5 +1,5 @@
-main: main.c
-	gcc -Wall -ggdb3 main.c -o main
+main: main.c parser.c lexer.c token.c json.c
+	gcc -Wall -ggdb3 parser.c lexer.c token.c json.c main.c ../hashmap/map.c ../list/list.c -o main
 
 valgrind: main
 	valgrind --leak-check=full \
