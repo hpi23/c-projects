@@ -20,6 +20,7 @@ Vec *vec_new_with_capacity(ssize_t capacity);
 Vec *vec_new();
 void vec_push(Vec *vec, VEC_VALUE_TYPE value);
 void vec_pop(Vec *vec);
+void vec_pop_front(Vec *vec);
 void vec_shrink_to_fit(Vec *vec);
 void vec_print(Vec *vec);
 VEC_VALUE_TYPE vec_index(Vec *vec, ssize_t index);

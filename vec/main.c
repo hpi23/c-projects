@@ -27,8 +27,17 @@ void vec_normal() {
 int main(void) {
   vec_normal();
   printf("======\n");
-  Vec *vec = vec_new_with_capacity(100);
-  for (int i = 0; i < 101; i++) {
+  Vec *vec = vec_new_with_capacity(10);
+  for (int i = 0; i < 10; i++) {
     vec_push(vec, i);
   }
+
+  vec_print(vec);
+  vec_pop(vec);
+  vec_print(vec);
+  vec_pop_front(vec);
+  vec_pop_front(vec);
+  vec_print(vec);
+
+  vec_free(vec);
 }

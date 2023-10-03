@@ -1,6 +1,7 @@
 #include "./vec.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 void vec_set_size(Vec *vec, ssize_t new_size);
 
@@ -46,6 +47,22 @@ void vec_pop(Vec *vec) {
   }
   vec->used--;
 }
+
+void vec_pop_front(Vec *vec) {
+  if (vec->used == 0) {
+    return;
+  }
+  vec->used--;
+  vec->capacity = vec->used;
+  VEC_VALUE_TYPE *buf_temp = malloc(sizeof(VEC_VALUE_TYPE) * vec->capacity);
+
+  for (int i = 1; i < vec->capacity + 1; i++) {
+    buf_temp[i - 1] = vec->values[i];
+  }
+
+  free(vec->values);
+  vec->values = buf_temp;
+};
 
 // Shrinks the vector as much as possible.
 void vec_shrink_to_fit(Vec *vec) {
