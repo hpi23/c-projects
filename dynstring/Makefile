@@ -1,4 +1,4 @@
-main: list.c main.c
+main: dynstring.c main.c
 	gcc -Wall -ggdb3 dynstring.c main.c -o main
 
 valgrind: main
