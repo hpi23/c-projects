@@ -72,10 +72,10 @@ TokenResult lexer_make_number(Lexer *lexer) {
     }
   }
 
-  ssize_t num_str_len = prev_idx - num_start_idx;
+  ssize_t num_str_len = prev_idx - num_start_idx + 1;
   result.token.value = malloc(sizeof(char) * num_str_len + 1);
-  memcpy(result.token.value, lexer->input, num_str_len);
-  result.token.value[num_str_len - 1] = '\0';
+  memcpy(result.token.value, &lexer->input[num_start_idx - 1], num_str_len);
+  result.token.value[num_str_len] = '\0';
 
   if (is_float) {
     result.token.kind = TOKENKIND_FLOAT;
@@ -108,6 +108,10 @@ TokenResult lexer_next_token(Lexer *lexer) {
   case ':':
     result.token.kind = TOKENKIND_COLON;
     result.token.value = ":";
+    break;
+  case ',':
+    result.token.kind = TOKENKIND_COMMA;
+    result.token.value = ",";
     break;
   case '"':
     return lexer_make_string(lexer);

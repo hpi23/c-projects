@@ -28,6 +28,8 @@ typedef struct {
   JsonValueArray array;
   double num_float;
   int64_t num_int;
+  bool boolean;
+  char * string;
 } JsonValue;
 
 void json_print_value(JsonValue value);

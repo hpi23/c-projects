@@ -48,9 +48,16 @@ JsonParseResult parse_json(JsonParser *parser) {
     result.value.object = obj_result.value;
     break;
   }
-  case TOKENKIND_RBRACE:
-  case TOKENKIND_LBRACKET:
-  case TOKENKIND_RBRACKET:
+  case TOKENKIND_LBRACKET: {
+    ParseResultArray array_result = parse_array(parser);
+    if (array_result.error != NULL) {
+      result.error = array_result.error;
+      return result;
+    }
+    result.value.type = JSON_TYPE_ARRAY;
+    result.value.array = array_result.value;
+    break;
+  }
   case TOKENKIND_INT: {
     result.value.type = JSON_TYPE_INT;
     char *remaining_string;
@@ -68,13 +75,37 @@ JsonParseResult parse_json(JsonParser *parser) {
 
     break;
   }
-  case TOKENKIND_FLOAT:
+  case TOKENKIND_FLOAT: {
+    result.value.type = JSON_TYPE_FLOAT;
+    char *remaining_string;
+    result.value.num_float = strtold(parser->curr_tok.value, &remaining_string);
+    if (strlen(remaining_string) != 0 || errno != 0) {
+      asprintf(&result.error, "Error: float `%s` parse error", parser->curr_tok.value);
+      return result;
+    }
+
+    char *error = parser_next(parser);
+    if (error != NULL) {
+      result.error = error;
+      return result;
+    }
+
+    break;
+  }
   case TOKENKIND_STRING:
-  case TOKENKIND_COLON:
-  case TOKENKIND_COMMA:
-  case TOKENKIND_EOF:
+    result.value.type = JSON_TYPE_STRING;
+    result.value.string = malloc(strlen(parser->curr_tok.value) + 1);
+    strcpy(result.value.string, parser->curr_tok.value);
+
+    char *error = parser_next(parser);
+    if (error != NULL) {
+      result.error = error;
+      return result;
+    }
+
+    break;
   default:
-    asprintf(&result.error, "Error: exected either `LBRACE` or `LBRACKET`, got `%s`", display_tokenkind(parser->curr_tok.kind));
+    asprintf(&result.error, "Error: exected JSON value, got `%s`", display_tokenkind(parser->curr_tok.kind));
     return result;
   }
 
@@ -131,7 +162,7 @@ ParseResultObject parse_object(JsonParser *parser) {
     return result;
   }
 
-  HashMap * field_map = hashmap_new();
+  HashMap *field_map = hashmap_new();
 
   if (parser->curr_tok.kind != TOKENKIND_RBRACE && parser->curr_tok.kind != TOKENKIND_EOF) {
     // make initial field
@@ -156,6 +187,10 @@ ParseResultObject parse_object(JsonParser *parser) {
         return result;
       }
 
+      if (parser->curr_tok.kind == TOKENKIND_EOF) {
+        break;
+      }
+
       // make other fields
       ParseResultObjectField field_res = parse_object_field(parser);
       if (field_res.error != NULL) {
@@ -173,5 +208,61 @@ ParseResultObject parse_object(JsonParser *parser) {
 
   JsonValueObject object = {.fields = field_map};
   result.value = object;
+  return result;
+}
+
+ParseResultArray parser_parse_array(JsonParser *parser) {
+  JsonValueArray array = {.fields = list_new()};
+  ParseResultArray result = {.value = array, .error = NULL};
+
+  // skip the `[`
+  char *err = parser_next(parser);
+  if (err != NULL) {
+    result.error = err;
+    return result;
+  }
+
+  while (parser->curr_tok.kind == TOKENKIND_COMMA) {
+    // skip the `,`
+    char *err = parser_next(parser);
+    if (err != NULL) {
+      result.error = err;
+      return result;
+    }
+
+    // prevent a trailing comma
+    if (parser->curr_tok.kind == TOKENKIND_RBRACE) {
+      result.error = "Error: trailing comma is not allowed";
+      return result;
+    }
+
+    if (parser->curr_tok.kind == TOKENKIND_EOF) {
+      break;
+    }
+
+    // make the value
+    JsonParseResult value_result = parse_json(parser);
+    if (value_result.error != NULL) {
+      result.error = value_result.error;
+      return result;
+    }
+
+    JsonValue *value = (JsonValue *)malloc(sizeof(JsonValue));
+    *value = value_result.value;
+    list_append(&array.fields, value);
+  }
+
+  if (parser->curr_tok.kind != TOKENKIND_RBRACKET) {
+    asprintf(&result.error, "Error: exected token `%s`, found `%s`", display_tokenkind(TOKENKIND_RBRACKET), display_tokenkind(parser->curr_tok.kind));
+    return result;
+  }
+
+  // skip the `]`
+  err = parser_next(parser);
+  if (err != NULL) {
+    result.error = err;
+    return result;
+  }
+
   return result;
 }
