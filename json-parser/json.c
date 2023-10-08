@@ -144,7 +144,7 @@ char *__internal_json_value_to_string(JsonValue value, ssize_t indent) {
     return buf;
   }
   case JSON_TYPE_BOOL: {
-    char *buf = malloc(5);
+    char *buf = malloc(6);
     if (value.boolean) {
       strcpy(buf, "true");
       break;

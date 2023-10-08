@@ -1,4 +1,6 @@
 #include "./token.h"
+#include <stdio.h>
+#include <stdlib.h>
 
 char *display_tokenkind(TokenKind kind) {
   switch (kind) {
@@ -23,6 +25,8 @@ char *display_tokenkind(TokenKind kind) {
   case TOKENKIND_FLOAT:
     return "FLOAT";
   }
+  printf("Unreachable: Illegal tokenkind");
+  exit(1);
 }
 
 Token token_new_eof() {
