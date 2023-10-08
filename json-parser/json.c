@@ -1,63 +1,146 @@
 #include "./json.h"
+#include "../dynstring/dynstring.h"
 #include "../hashmap/map.h"
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-void json_print_object(JsonValueObject object) {
-  assert(object.fields != NULL);
-  printf("{\n");
+void json_print_value(JsonValue value) { puts(json_value_to_string(value)); }
 
-  ListNode *keys = hashmap_keys(object.fields);
-  int len = list_len(keys);
+char *json_object_to_string(JsonValueObject object) {
+  assert(object.fields != NULL);
+  DynString *buf = dynstring_from("{\n");
+
+  ListNode *keys_start = hashmap_keys(object.fields);
+  int len = list_len(keys_start);
+
+  ListNode *keys = keys_start;
   for (int i = 0; i < len; i++) {
     ListGetResult key = list_at(keys, i);
     assert(key.found);
-    printf("    %s: ", (char *)key.value);
 
-    MapGetResult value = hashmap_get(object.fields, (char *) key.value);
+    MapGetResult value = hashmap_get(object.fields, (char *)key.value);
     assert(value.found);
-    json_print_value(*(JsonValue *)value.value);
 
-    printf("\n");
+    char * value_buf = json_value_to_string(*(JsonValue *)value.value);
+    dynstring_push_fmt(buf, "    \"%s\": %s", (char *)key.value, value_buf);
+    free(value_buf);
+
+    // prevent trailing comma
+    if (i + 1 < len) {
+      dynstring_push_char(buf, ',');
+    }
+
+    dynstring_push_char(buf, '\n');
   }
 
-  printf("}\n");
+  list_free(keys_start);
+
+  dynstring_push_string(buf, "}\n");
+  char *c_str = dynstring_as_cstr(buf);
+  dynstring_free(buf);
+  return c_str;
 }
 
-void json_print_array(JsonValueArray array) {
-    ListNode * list = &array.fields;
-    while (list->next != NULL) {
-        assert(list->value != NULL);
-        JsonValue * value = (JsonValue *) list->value;
-        json_print_value(*value);
-        list = list->next;
+char *json_array_to_string(JsonValueArray array) {
+  DynString *buf = dynstring_from("[");
+  ListNode *list = array.fields;
+  while (list != NULL) {
+    assert(list->value != NULL);
+    JsonValue *value = (JsonValue *)list->value;
+    dynstring_push_string(buf, json_value_to_string(*value));
+    if (list->next != NULL) {
+      dynstring_push_string(buf, ", ");
     }
+    list = list->next;
+  }
+  dynstring_push_char(buf, ']');
+  char *c_str = dynstring_as_cstr(buf);
+  dynstring_free(buf);
+  return c_str;
 }
 
-void json_print_value(JsonValue value) {
+char *json_value_to_string(JsonValue value) {
   switch (value.type) {
   case JSON_TYPE_OBJECT:
-    json_print_object(value.object);
+    return json_object_to_string(value.object);
+  case JSON_TYPE_ARRAY:
+    return json_array_to_string(value.array);
+  case JSON_TYPE_INT: {
+    char *buf;
+    asprintf(&buf, "%ld", value.num_int);
+    return buf;
+  }
+  case JSON_TYPE_FLOAT: {
+    char *buf;
+    asprintf(&buf, "%f", value.num_float);
+    return buf;
+  }
+  case JSON_TYPE_BOOL: {
+    char *buf = malloc(5);
+    if (value.boolean) {
+      strcpy(buf, "true");
+      break;
+    } else {
+      strcpy(buf, "false");
+      break;
+    }
+    return buf;
+  }
+  case JSON_TYPE_STRING: {
+    char *buf;
+    asprintf(&buf, "\"%s\"", value.string);
+    return buf;
+  }
+  }
+
+  puts("Unreachable: every value case is handled above.");
+  exit(1);
+}
+
+//
+// Helper functions
+//
+
+void json_value_object_free(JsonValueObject obj) {
+  ListNode *keys_start = hashmap_keys(obj.fields);
+
+  ListNode *keys = keys_start;
+  while (keys != NULL) {
+    char *key = (char *)keys->value;
+    assert(key != NULL);
+
+    MapGetResult value = hashmap_get(obj.fields, key);
+    assert(value.found);
+
+    JsonValue *json_value = (JsonValue *)value.value;
+    json_value_free(*json_value);
+
+    free(json_value);
+
+    keys = keys->next;
+  }
+
+  list_free(keys_start);
+
+  hashmap_free(obj.fields);
+}
+
+void json_value_array_free(JsonValueArray value) { list_free(value.fields); }
+
+void json_value_free(JsonValue value) {
+  switch (value.type) {
+  case JSON_TYPE_OBJECT:
+    json_value_object_free(value.object);
     break;
   case JSON_TYPE_ARRAY:
-    json_print_array(value.array);
-  case JSON_TYPE_INT:
-    printf("%ld", value.num_int);
-    break;
-  case JSON_TYPE_FLOAT:
-    printf("%f", value.num_float);
-    break;
-  case JSON_TYPE_BOOL:
-    if (value.boolean) {
-        printf("true");
-    } else {
-        printf("false");
-    }
+    json_value_array_free(value.array);
     break;
   case JSON_TYPE_STRING:
-    printf("%s", value.string);
-    break;
+    free(value.string);
+  default:
+    // These types do not need to be freed
+    return;
   }
 }

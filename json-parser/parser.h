@@ -33,6 +33,10 @@ typedef struct {
 
 char *parser_next(JsonParser *parser);
 NewJsonParserResult parser_new(char *input);
-JsonParseResult parse_json(JsonParser *);
+void parser_free(JsonParser * parser);
+
+JsonParseResult parse_json(JsonParser * parser);
+void json_parse_result_free(JsonParseResult result);
+
 ParseResultObject parse_object(JsonParser *parser);
 ParseResultArray parser_parse_array(JsonParser *parser);

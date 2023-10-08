@@ -1,3 +1,4 @@
+#include "../dynstring/dynstring.h"
 #include "./parser.h"
 #include <stdio.h>
 
@@ -5,7 +6,9 @@
 
 char *read_test_file() {
   FILE *ptr;
-  char ch;
+
+  // Using `dynstring` as a dynamic reading buffer
+  DynString *string = dynstring_new();
 
   // Opening file in reading mode
   ptr = fopen(TEST_FILE, "r");
@@ -17,9 +20,10 @@ char *read_test_file() {
 
   // Printing what is written in file
   // character by character using loop.
+  char ch;
   do {
     ch = fgetc(ptr);
-    printf("%c", ch);
+    dynstring_push_char(string, ch);
 
     // Checking if character is not EOF.
     // If it is EOF stop reading.
@@ -27,12 +31,16 @@ char *read_test_file() {
 
   // Closing the file
   fclose(ptr);
-  return 0;
+
+  char * c_str = dynstring_as_cstr(string);
+  dynstring_free(string);
+  return c_str;
 }
 
 int main() {
+  char * input = read_test_file();
 
-  char *input = "{ \"a_key\": 42, \"another\": 3.1415, \"a_string\": \"foo-bar\" }";
+  // char *input = "{ \"a_key\": 42, \"another\": 3.1415, \"a_string\": \"foo-bar\" }";
   NewJsonParserResult result = parser_new(input);
   if (result.error != NULL) {
     printf("%s\n", result.error);
@@ -46,7 +54,14 @@ int main() {
     exit(2);
   }
 
-  json_print_value(parse_result.value);
+  parser_free(&parser);
+
+  // json_print_value(parse_result.value);
+  char * str = json_value_to_string(parse_result.value);
+  printf("%s\n", str);
+  free(str);
+
+  json_parse_result_free(parse_result);
 
   return 0;
 }

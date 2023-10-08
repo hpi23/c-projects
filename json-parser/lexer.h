@@ -1,6 +1,6 @@
 #pragma once
-#include <stdlib.h>
 #include "./token.h"
+#include <stdlib.h>
 
 typedef struct {
   ssize_t index;
@@ -19,4 +19,5 @@ typedef struct {
 
 void lexer_advance(Lexer *lexer);
 Lexer lexer_new(char *input);
+void lexer_free(Lexer *lexer);
 TokenResult lexer_next_token(Lexer *lexer);

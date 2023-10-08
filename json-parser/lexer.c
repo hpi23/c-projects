@@ -20,6 +20,10 @@ Lexer lexer_new(char *input) {
   return lexer;
 }
 
+void lexer_free(Lexer *lexer) {
+    free(lexer->input);
+}
+
 TokenResult lexer_make_string(Lexer *lexer) {
   Token string_tok = {.kind = TOKENKIND_STRING, .value = NULL};
   TokenResult result = {.error = NULL, .token = string_tok};
@@ -92,7 +96,7 @@ TokenResult lexer_next_token(Lexer *lexer) {
     return result;
   }
 
-  while (lexer->curr_char == ' ') {
+  while (lexer->curr_char == ' ' || lexer->curr_char == '\n' || lexer->curr_char == '\t') {
     lexer_advance(lexer);
   }
 
@@ -104,6 +108,14 @@ TokenResult lexer_next_token(Lexer *lexer) {
   case '}':
     result.token.kind = TOKENKIND_RBRACE;
     result.token.value = "}";
+    break;
+  case '[':
+    result.token.kind = TOKENKIND_LBRACKET;
+    result.token.value = "[";
+    break;
+  case ']':
+    result.token.kind = TOKENKIND_RBRACKET;
+    result.token.value = "]";
     break;
   case ':':
     result.token.kind = TOKENKIND_COLON;

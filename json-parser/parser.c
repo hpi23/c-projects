@@ -10,7 +10,25 @@
 
 #include "../hashmap/map.h"
 
+void parser_free_token(Token token) {
+  switch (token.kind) {
+  case TOKENKIND_STRING:
+  case TOKENKIND_INT:
+  case TOKENKIND_FLOAT:
+    free(token.value);
+  default:
+    // no need to free tokens which are not heap-allocated
+    return;
+  }
+}
+
+void parser_free(JsonParser *parser) {
+  parser_free_token(parser->curr_tok);
+  lexer_free(&parser->lexer);
+}
+
 char *parser_next(JsonParser *parser) {
+  parser_free_token(parser->curr_tok);
   TokenResult result = lexer_next_token(&parser->lexer);
   parser->curr_tok = result.token;
   if (result.error != NULL) {
@@ -49,7 +67,7 @@ JsonParseResult parse_json(JsonParser *parser) {
     break;
   }
   case TOKENKIND_LBRACKET: {
-    ParseResultArray array_result = parse_array(parser);
+    ParseResultArray array_result = parser_parse_array(parser);
     if (array_result.error != NULL) {
       result.error = array_result.error;
       return result;
@@ -172,6 +190,7 @@ ParseResultObject parse_object(JsonParser *parser) {
       return result;
     }
     hashmap_insert(field_map, field_res.key, field_res.value);
+    free(field_res.key);
 
     while (parser->curr_tok.kind == TOKENKIND_COMMA) {
       // skip comma
@@ -198,6 +217,7 @@ ParseResultObject parse_object(JsonParser *parser) {
         return result;
       }
       hashmap_insert(field_map, field_res.key, field_res.value);
+      free(field_res.key);
     }
   }
 
@@ -222,25 +242,8 @@ ParseResultArray parser_parse_array(JsonParser *parser) {
     return result;
   }
 
-  while (parser->curr_tok.kind == TOKENKIND_COMMA) {
-    // skip the `,`
-    char *err = parser_next(parser);
-    if (err != NULL) {
-      result.error = err;
-      return result;
-    }
-
-    // prevent a trailing comma
-    if (parser->curr_tok.kind == TOKENKIND_RBRACE) {
-      result.error = "Error: trailing comma is not allowed";
-      return result;
-    }
-
-    if (parser->curr_tok.kind == TOKENKIND_EOF) {
-      break;
-    }
-
-    // make the value
+  if (parser->curr_tok.kind != TOKENKIND_RBRACKET && parser->curr_tok.kind != TOKENKIND_EOF) {
+    // make initial value
     JsonParseResult value_result = parse_json(parser);
     if (value_result.error != NULL) {
       result.error = value_result.error;
@@ -249,7 +252,37 @@ ParseResultArray parser_parse_array(JsonParser *parser) {
 
     JsonValue *value = (JsonValue *)malloc(sizeof(JsonValue));
     *value = value_result.value;
-    list_append(&array.fields, value);
+    list_append(array.fields, value);
+
+    while (parser->curr_tok.kind == TOKENKIND_COMMA) {
+      // skip the `,`
+      char *err = parser_next(parser);
+      if (err != NULL) {
+        result.error = err;
+        return result;
+      }
+
+      // prevent a trailing comma
+      if (parser->curr_tok.kind == TOKENKIND_RBRACKET) {
+        result.error = "Error: trailing comma is not allowed";
+        return result;
+      }
+
+      if (parser->curr_tok.kind == TOKENKIND_EOF) {
+        break;
+      }
+
+      // make the value
+      JsonParseResult value_result = parse_json(parser);
+      if (value_result.error != NULL) {
+        result.error = value_result.error;
+        return result;
+      }
+
+      JsonValue *value = (JsonValue *)malloc(sizeof(JsonValue));
+      *value = value_result.value;
+      list_append(array.fields, value);
+    }
   }
 
   if (parser->curr_tok.kind != TOKENKIND_RBRACKET) {
@@ -265,4 +298,15 @@ ParseResultArray parser_parse_array(JsonParser *parser) {
   }
 
   return result;
+}
+
+//
+// HELPER FUNCTIONS
+//
+
+void json_parse_result_free(JsonParseResult result) {
+  if (result.error != NULL) {
+    free(result.error);
+  }
+  json_value_free(result.value);
 }

@@ -1,5 +1,3 @@
 {
-  "a_key": 42,
-  "another": 3.1415,
-  "a_string": "foo-bar"
+  "key": 42
 }
