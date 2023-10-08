@@ -14,6 +14,9 @@ int main() {
   printf("%s\n", temp);
   free(temp);
 
+  dynstring_push_fmt(string, "%d", 42);
+  dynstring_print(string);
+
   dynstring_free(string);
   return 0;
 }

@@ -1,5 +1,6 @@
 #include "./dynstring.h"
 #include <assert.h>
+#include <stdarg.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
@@ -27,7 +28,7 @@ DynString *dynstring_from(char *from) {
   assert(from != NULL);
   ssize_t from_length = strlen(from);
 
-  DynString * string = malloc(sizeof(DynString));
+  DynString *string = malloc(sizeof(DynString));
   string->capacity = from_length;
   string->length = from_length;
   string->internal_str = malloc(sizeof(char) * from_length);
@@ -52,7 +53,7 @@ void dynstring_push_string(DynString *string, char *add) {
   assert(string != NULL);
   // Check if the capacity of the string must be extended
   bool size_changed = false;
-  ssize_t add_len =  strlen(add);
+  ssize_t add_len = strlen(add);
 
   while (string->capacity < string->length + add_len) {
     string->capacity = string->capacity * 2;
@@ -65,29 +66,34 @@ void dynstring_push_string(DynString *string, char *add) {
   string->length += add_len;
 }
 
+// void dynstring_push_fmt(DynString *string, const char *fmt, ...) {
+//   char *buf;
+//   asprintf(&buf, fmt, ARGS);
+//   dynstring_push_string(string, buf);
+//   free(buf);
+// }
+
 char *dynstring_as_cstr(DynString *string) {
-    assert(string != NULL);
-    char * c_str = malloc(sizeof(char) * string->length + 1);
-    memcpy(c_str, string->internal_str, string->length);
-    c_str[string->length] = '\0';
-    return c_str;
+  assert(string != NULL);
+  char *c_str = malloc(sizeof(char) * string->length + 1);
+  memcpy(c_str, string->internal_str, string->length);
+  c_str[string->length] = '\0';
+  return c_str;
 }
 
 void dynstring_print(DynString *string) {
-    assert(string != NULL);
-    for (int i = 0; i < string->length; i++) {
-        printf("%c", string->internal_str[i]);
-    }
-    printf("\n");
+  assert(string != NULL);
+  for (int i = 0; i < string->length; i++) {
+    printf("%c", string->internal_str[i]);
+  }
+  printf("\n");
 }
 
-ssize_t dynstring_length(DynString *string) {
-    return string->length;
-}
+ssize_t dynstring_length(DynString *string) { return string->length; }
 
 void dynstring_free(DynString *string) {
-    assert(string != NULL);
-    assert(string->internal_str != NULL);
-    free(string->internal_str);
-    free(string);
+  assert(string != NULL);
+  assert(string->internal_str != NULL);
+  free(string->internal_str);
+  free(string);
 }
