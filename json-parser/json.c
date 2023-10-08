@@ -23,7 +23,7 @@ char *json_object_to_string(JsonValueObject object) {
     MapGetResult value = hashmap_get(object.fields, (char *)key.value);
     assert(value.found);
 
-    char * value_buf = json_value_to_string(*(JsonValue *)value.value);
+    char *value_buf = json_value_to_string(*(JsonValue *)value.value);
     dynstring_push_fmt(buf, "    \"%s\": %s", (char *)key.value, value_buf);
     free(value_buf);
 
@@ -49,7 +49,9 @@ char *json_array_to_string(JsonValueArray array) {
   while (list != NULL) {
     assert(list->value != NULL);
     JsonValue *value = (JsonValue *)list->value;
-    dynstring_push_string(buf, json_value_to_string(*value));
+    char * value_buf = json_value_to_string(*value);
+    dynstring_push_string(buf, value_buf);
+    free(value_buf);
     if (list->next != NULL) {
       dynstring_push_string(buf, ", ");
     }
@@ -127,7 +129,19 @@ void json_value_object_free(JsonValueObject obj) {
   hashmap_free(obj.fields);
 }
 
-void json_value_array_free(JsonValueArray value) { list_free(value.fields); }
+void json_value_array_free(JsonValueArray value) {
+  ListNode *elements = value.fields;
+
+  while (elements != NULL) {
+    JsonValue *current = (JsonValue *)elements->value;
+    json_value_free(*current);
+    free(current);
+
+    elements = elements->next;
+  }
+
+  list_free(value.fields);
+}
 
 void json_value_free(JsonValue value) {
   switch (value.type) {
