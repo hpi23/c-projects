@@ -91,6 +91,60 @@ void dynstring_print(DynString *string) {
 
 ssize_t dynstring_length(DynString *string) { return string->length; }
 
+void dynstring_repeat(DynString *string, ssize_t n) {
+  if (n == 0) {
+    dynstring_clear(string);
+    return;
+  }
+
+  if (n == 1) {
+    return;
+  }
+
+  ssize_t new_size = string->length * n;
+  while (new_size < string->capacity) {
+    string->capacity *= 2;
+  }
+  dynstring__internal_grow(string);
+
+  for (int i = 0; i < n; i++) {
+    memcpy(&string->internal_str[i], string->internal_str, string->length);
+  }
+
+  string->length = new_size;
+}
+
+// TODO: test this
+void dynstring_set(DynString *string, char *content) {
+  assert(string->internal_str != NULL);
+  free(string->internal_str);
+
+  ssize_t new_len = strlen(content);
+
+  if (new_len == 0) {
+    string->capacity = DEFAULT_CAPACITY;
+  } else {
+    string->capacity = new_len;
+  }
+
+  string->internal_str = malloc(string->capacity);
+
+  if (new_len != 0) {
+    memcpy(string->internal_str, content, new_len);
+  }
+
+  string->length = new_len;
+}
+
+void dynstring_clear(DynString *string) {
+  assert(string->internal_str != NULL);
+  free(string->internal_str);
+
+  string->capacity = DEFAULT_CAPACITY;
+  string->internal_str = malloc(string->capacity);
+  string->length = 0;
+}
+
 void dynstring_free(DynString *string) {
   assert(string != NULL);
   assert(string->internal_str != NULL);
