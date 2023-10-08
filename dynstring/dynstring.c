@@ -84,3 +84,10 @@ void dynstring_print(DynString *string) {
 ssize_t dynstring_length(DynString *string) {
     return string->length;
 }
+
+void dynstring_free(DynString *string) {
+    assert(string != NULL);
+    assert(string->internal_str != NULL);
+    free(string->internal_str);
+    free(string);
+}

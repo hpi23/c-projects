@@ -17,8 +17,10 @@ void dynstring_push_char(DynString * string, char add);
 void dynstring_push_string(DynString * string, char * add);
 
 // Converts the underlying string to a c-string.
-// Adds a NULL-terminator byte.
-char * dynstring_as_cstr();
+// Adds a NULL-terminator.
+char *dynstring_as_cstr(DynString *string);
 
 // Prints the string.
 void dynstring_print(DynString *string);
+
+void dynstring_free(DynString *string);
