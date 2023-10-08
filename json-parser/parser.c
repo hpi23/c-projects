@@ -226,6 +226,13 @@ ParseResultObject parse_object(JsonParser *parser) {
     return result;
   }
 
+  // skip the `}`
+  err = parser_next(parser);
+  if (err != NULL) {
+    result.error = err;
+    return result;
+  }
+
   JsonValueObject object = {.fields = field_map};
   result.value = object;
   return result;

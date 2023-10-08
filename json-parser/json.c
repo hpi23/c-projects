@@ -5,10 +5,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/types.h>
 
-void json_print_value(JsonValue value) { puts(json_value_to_string(value)); }
+char *__internal_json_value_to_string(JsonValue value, ssize_t indent);
 
-char *json_object_to_string(JsonValueObject object) {
+void json_print_value(JsonValue value) { puts(__internal_json_value_to_string(value, 0)); }
+
+char *json_object_to_string(JsonValueObject object, ssize_t indent) {
   assert(object.fields != NULL);
   DynString *buf = dynstring_from("{\n");
 
@@ -23,9 +26,16 @@ char *json_object_to_string(JsonValueObject object) {
     MapGetResult value = hashmap_get(object.fields, (char *)key.value);
     assert(value.found);
 
-    char *value_buf = json_value_to_string(*(JsonValue *)value.value);
-    dynstring_push_fmt(buf, "    \"%s\": %s", (char *)key.value, value_buf);
+    char *value_buf = __internal_json_value_to_string(*(JsonValue *)value.value, indent + 4);
+
+    DynString *indent_buf = dynstring_from(" ");
+    dynstring_repeat(indent_buf, indent);
+
+    char *indent = dynstring_as_cstr(indent_buf);
+    dynstring_push_fmt(buf, "%s\"%s\": %s", indent, (char *)key.value, value_buf);
     free(value_buf);
+    free(indent);
+    dynstring_free(indent_buf);
 
     // prevent trailing comma
     if (i + 1 < len) {
@@ -37,38 +47,92 @@ char *json_object_to_string(JsonValueObject object) {
 
   list_free(keys_start);
 
-  dynstring_push_string(buf, "}\n");
+  DynString *indent_buf = dynstring_from(" ");
+  dynstring_repeat(indent_buf, indent - 4);
+
+  char *indent_str = dynstring_as_cstr(indent_buf);
+
+  dynstring_push_fmt(buf, "%s}", indent_str);
+  free(indent_str);
+  dynstring_free(indent_buf);
+
   char *c_str = dynstring_as_cstr(buf);
   dynstring_free(buf);
   return c_str;
 }
 
-char *json_array_to_string(JsonValueArray array) {
-  DynString *buf = dynstring_from("[");
-  ListNode *list = array.fields;
+char *json_array_to_string(JsonValueArray array, ssize_t indent) {
+  ListNode *list_start = array.fields;
+
+  // detect if the formatting should be multiline
+  bool multiline = false;
+  ListNode *list = list_start;
   while (list != NULL) {
-    assert(list->value != NULL);
-    JsonValue *value = (JsonValue *)list->value;
-    char * value_buf = json_value_to_string(*value);
-    dynstring_push_string(buf, value_buf);
-    free(value_buf);
-    if (list->next != NULL) {
-      dynstring_push_string(buf, ", ");
+    JsonValue *val = (JsonValue *)list->value;
+    if (val->type == JSON_TYPE_OBJECT || val->type == JSON_TYPE_ARRAY) {
+      multiline = true;
+      break;
     }
     list = list->next;
   }
+
+  DynString *indent_buf = dynstring_from(" ");
+  if (multiline) {
+    dynstring_repeat(indent_buf, indent);
+  } else {
+    dynstring_clear(indent_buf);
+  }
+  char *indent_str = dynstring_as_cstr(indent_buf);
+
+  DynString *buf = dynstring_from("[");
+  if (multiline) {
+    dynstring_push_char(buf, '\n');
+  }
+  list = list_start;
+  while (list != NULL) {
+    assert(list->value != NULL);
+    JsonValue *value = (JsonValue *)list->value;
+    char *value_buf = __internal_json_value_to_string(*value, indent + 4);
+
+    dynstring_push_fmt(buf, "%s%s", indent_str, value_buf);
+    free(value_buf);
+    if (list->next != NULL) {
+      if (multiline) {
+        dynstring_push_string(buf, ",\n");
+      } else {
+        dynstring_push_string(buf, ", ");
+      }
+    }
+    list = list->next;
+  }
+
+  if (multiline) {
+    dynstring_push_char(buf, '\n');
+    DynString * indent_buf = dynstring_from(" ");
+    dynstring_repeat(indent_buf, indent - 4);
+    char * indent_str = dynstring_as_cstr(indent_buf);
+    dynstring_push_string(buf, indent_str);
+    free(indent_str);
+    dynstring_free(indent_buf);
+  }
   dynstring_push_char(buf, ']');
+
   char *c_str = dynstring_as_cstr(buf);
   dynstring_free(buf);
+
+  dynstring_free(indent_buf);
+  free(indent_str);
   return c_str;
 }
 
-char *json_value_to_string(JsonValue value) {
+char *json_value_to_string(JsonValue value) { return __internal_json_value_to_string(value, 4); }
+
+char *__internal_json_value_to_string(JsonValue value, ssize_t indent) {
   switch (value.type) {
   case JSON_TYPE_OBJECT:
-    return json_object_to_string(value.object);
+    return json_object_to_string(value.object, indent);
   case JSON_TYPE_ARRAY:
-    return json_array_to_string(value.array);
+    return json_array_to_string(value.array, indent);
   case JSON_TYPE_INT: {
     char *buf;
     asprintf(&buf, "%ld", value.num_int);

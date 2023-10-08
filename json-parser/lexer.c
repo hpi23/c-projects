@@ -127,7 +127,7 @@ TokenResult lexer_next_token(Lexer *lexer) {
     break;
   case '"':
     return lexer_make_string(lexer);
-  case '\0':
+  case '\0' | -1:
     result.token.kind = TOKENKIND_EOF;
     result.token.value = "EOF";
     break;
