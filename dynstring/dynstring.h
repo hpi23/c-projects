@@ -1,3 +1,5 @@
+#pragma once
+#include <stdint.h>
 #include <stdlib.h>
 
 typedef struct {
@@ -32,6 +34,22 @@ void dynstring_print(DynString *string);
 
 // Repeats the contents of the string n times.
 void dynstring_repeat(DynString *string, ssize_t n);
+
+typedef struct {
+    char * error;
+    int64_t num;
+} DynStringParseInt;
+
+// Attempts to parse the dynstring to a `int64_t`
+DynStringParseInt dynstring_parse_int64(DynString * string);
+
+typedef struct {
+    char * error;
+    double num;
+} DynStringParseDouble;
+
+// Attempts to parse the dynstring to a `double`
+DynStringParseDouble dynstring_parse_double(DynString * string);
 
 // Updates the value of the string.
 void dynstring_set(DynString *string, char * content);

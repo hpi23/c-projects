@@ -1,5 +1,6 @@
 #include "./dynstring.h"
 #include <assert.h>
+#include <errno.h>
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -112,6 +113,40 @@ void dynstring_repeat(DynString *string, ssize_t n) {
   }
 
   string->length = new_size;
+}
+
+DynStringParseInt dynstring_parse_int64(DynString *string) {
+  DynStringParseInt result = {.error = NULL};
+
+  char *c_str = dynstring_as_cstr(string);
+
+  char *remaining_string;
+  result.num = strtoll(c_str, &remaining_string, 10);
+  if (strlen(remaining_string) != 0 || errno != 0) {
+    asprintf(&result.error, "Error: integer `%s` parse error", c_str);
+    return result;
+  }
+
+  free(c_str);
+
+  return result;
+}
+
+DynStringParseDouble dynstring_parse_double(DynString *string) {
+  DynStringParseDouble result = {.error = NULL};
+
+  char *c_str = dynstring_as_cstr(string);
+
+  char *remaining_string;
+  result.num = strtold(c_str, &remaining_string);
+  if (strlen(remaining_string) != 0 || errno != 0) {
+    asprintf(&result.error, "Error: double `%s` parse error", c_str);
+    return result;
+  }
+
+  free(c_str);
+
+  return result;
 }
 
 // TODO: test this
