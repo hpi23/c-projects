@@ -12,6 +12,9 @@ DynString *dynstring_new();
 
 DynString *dynstring_from(char *from);
 
+// Appends another dynstring to the end of this one
+void dynstring_push(DynString *string, DynString *add);
+
 // Appends a char to the end of this string
 void dynstring_push_char(DynString *string, char add);
 
@@ -36,23 +39,23 @@ void dynstring_print(DynString *string);
 void dynstring_repeat(DynString *string, ssize_t n);
 
 typedef struct {
-    char * error;
-    int64_t num;
+  char *error;
+  int64_t num;
 } DynStringParseInt;
 
 // Attempts to parse the dynstring to a `int64_t`
-DynStringParseInt dynstring_parse_int64(DynString * string);
+DynStringParseInt dynstring_parse_int64(DynString *string);
 
 typedef struct {
-    char * error;
-    double num;
+  char *error;
+  double num;
 } DynStringParseDouble;
 
 // Attempts to parse the dynstring to a `double`
-DynStringParseDouble dynstring_parse_double(DynString * string);
+DynStringParseDouble dynstring_parse_double(DynString *string);
 
 // Updates the value of the string.
-void dynstring_set(DynString *string, char * content);
+void dynstring_set(DynString *string, char *content);
 
 // Clears the string (sets the string back to default)
 void dynstring_clear(DynString *string);

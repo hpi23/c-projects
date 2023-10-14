@@ -38,11 +38,22 @@ DynString *dynstring_from(char *from) {
   return string;
 }
 
+void dynstring_push(DynString *string, DynString *add) {
+    assert(string != NULL && add != NULL);
+    while (string->capacity < string->length + add->length) {
+        string->capacity *= 2;
+    }
+
+    dynstring__internal_grow(string);
+    memcpy(&string->internal_str[string->length], add->internal_str, add->length);
+    string->length = string->length + add->length;
+}
+
 void dynstring_push_char(DynString *string, char add) {
   assert(string != NULL);
   // Check if the capacity of the string must be extended
   if (string->capacity < string->length + 1) {
-    string->capacity = string->capacity * 2;
+    string->capacity *= 2;
     dynstring__internal_grow(string);
   }
 

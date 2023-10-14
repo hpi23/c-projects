@@ -47,5 +47,11 @@ int main() {
   }
   printf("double parse result: %f\n", res2.num);
 
+  DynString * base = dynstring_from("CONCAT: Hello");
+  DynString * add = dynstring_from(" World!");
+
+  dynstring_push(base, add);
+  dynstring_print(base);
+
   return 0;
 }
