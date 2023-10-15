@@ -1,6 +1,7 @@
 #pragma once
 #include <stdint.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
 typedef struct {
   char *internal_str;
@@ -53,6 +54,9 @@ typedef struct {
 
 // Attempts to parse the dynstring to a `double`
 DynStringParseDouble dynstring_parse_double(DynString *string);
+
+// Compares two DynStrings
+bool dynstring_strcmp(DynString *left, DynString *right);
 
 // Updates the value of the string.
 void dynstring_set(DynString *string, char *content);

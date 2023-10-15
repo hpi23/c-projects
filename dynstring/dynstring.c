@@ -39,14 +39,14 @@ DynString *dynstring_from(char *from) {
 }
 
 void dynstring_push(DynString *string, DynString *add) {
-    assert(string != NULL && add != NULL);
-    while (string->capacity < string->length + add->length) {
-        string->capacity *= 2;
-    }
+  assert(string != NULL && add != NULL);
+  while (string->capacity < string->length + add->length) {
+    string->capacity *= 2;
+  }
 
-    dynstring__internal_grow(string);
-    memcpy(&string->internal_str[string->length], add->internal_str, add->length);
-    string->length = string->length + add->length;
+  dynstring__internal_grow(string);
+  memcpy(&string->internal_str[string->length], add->internal_str, add->length);
+  string->length = string->length + add->length;
 }
 
 void dynstring_push_char(DynString *string, char add) {
@@ -158,6 +158,20 @@ DynStringParseDouble dynstring_parse_double(DynString *string) {
   free(c_str);
 
   return result;
+}
+
+bool dynstring_strcmp(DynString *left, DynString *right) {
+  if (left->length != right->length) {
+    return false;
+  }
+
+  for (int i = 0; i < left->length; i++) {
+    if (left->internal_str[i] != right->internal_str[i]) {
+      return false;
+    }
+  }
+
+  return true;
 }
 
 // TODO: test this

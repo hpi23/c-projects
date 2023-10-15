@@ -1,5 +1,6 @@
 #include "./dynstring.h"
 #include <assert.h>
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 
@@ -52,6 +53,12 @@ int main() {
 
   dynstring_push(base, add);
   dynstring_print(base);
+
+  DynString * left = dynstring_from("Foo");
+  DynString * right = dynstring_from("Foo");
+
+  bool cmp_res = dynstring_strcmp(left, right);
+  printf("Comparison result: %d\n", cmp_res);
 
   return 0;
 }
