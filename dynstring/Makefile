@@ -1,5 +1,8 @@
 main: dynstring.c main.c
-	gcc -Wall -ggdb3 dynstring.c main.c -o main
+	gcc -Wall -ggdb3 \
+		dynstring.c \
+		../list/list.c \
+		main.c -o main
 
 valgrind: main
 	valgrind --leak-check=full \

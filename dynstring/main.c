@@ -30,7 +30,7 @@ int main() {
   dynstring_set(string, "Hello World!");
   dynstring_print(string);
   dynstring_clear(string);
-  char *c_str = dynstring_as_cstr(string);
+  // char *c_str = dynstring_as_cstr(string);
 
   dynstring_free(string);
 
@@ -48,17 +48,29 @@ int main() {
   }
   printf("double parse result: %f\n", res2.num);
 
-  DynString * base = dynstring_from("CONCAT: Hello");
-  DynString * add = dynstring_from(" World!");
+  DynString *base = dynstring_from("CONCAT: Hello");
+  DynString *add = dynstring_from(" World!");
 
   dynstring_push(base, add);
   dynstring_print(base);
 
-  DynString * left = dynstring_from("Foo");
-  DynString * right = dynstring_from("Foo");
+  DynString *left = dynstring_from("Foo");
+  DynString *right = dynstring_from("Foo");
 
   bool cmp_res = dynstring_strcmp(left, right);
   printf("Comparison result: %d\n", cmp_res);
+
+  DynString *to_split = dynstring_from("Hello Mom and Dad!");
+  ListNode *split_original = dynstring_split(to_split, dynstring_from("Hello"));
+  ListNode *split = split_original;
+  while (split != NULL) {
+    char *out = dynstring_as_cstr(split->value);
+    printf("`%s`\n", out);
+    free(out);
+    free(split->value);
+    split = split->next;
+  }
+  list_free(split_original);
 
   return 0;
 }

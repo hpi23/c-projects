@@ -1,10 +1,13 @@
 #include "./dynstring.h"
+#include "../list/list.h"
 #include <assert.h>
 #include <errno.h>
 #include <stdarg.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#include <sys/types.h>
 
 #define DEFAULT_CAPACITY 1
 
@@ -28,6 +31,19 @@ DynString *dynstring_new() {
 DynString *dynstring_from(char *from) {
   assert(from != NULL);
   ssize_t from_length = strlen(from);
+
+  DynString *string = malloc(sizeof(DynString));
+  string->capacity = from_length;
+  string->length = from_length;
+  string->internal_str = malloc(sizeof(char) * from_length);
+
+  memcpy(string->internal_str, from, from_length);
+  return string;
+}
+
+DynString *dynstring_from_memcpy(char *from, ssize_t amount) {
+  assert(from != NULL);
+  ssize_t from_length = amount;
 
   DynString *string = malloc(sizeof(DynString));
   string->capacity = from_length;
@@ -172,6 +188,41 @@ bool dynstring_strcmp(DynString *left, DynString *right) {
   }
 
   return true;
+}
+
+// TODO: improve this implementation?
+ListNode *dynstring_split(DynString *base, DynString *delimeter) {
+  ListNode *res = list_new();
+
+  if (delimeter->length == 0 || delimeter->length > base->length) {
+    return res;
+  }
+
+  int64_t last_match_pos = 0;
+
+  for (ssize_t char_idx = 0; char_idx < base->length; char_idx++) {
+    ssize_t match_idx = char_idx;
+    ssize_t matched = 0;
+
+    while (delimeter->internal_str[match_idx - char_idx] == base->internal_str[match_idx]) {
+      match_idx++;
+      matched++;
+    }
+
+    if (matched > 0) {
+      DynString *before = dynstring_from_memcpy(&base->internal_str[last_match_pos], match_idx - last_match_pos - matched);
+      list_append(res, before);
+
+      DynString *remaining = dynstring_from_memcpy(&base->internal_str[match_idx], base->length - match_idx);
+      free(base);
+      base = remaining;
+      char_idx = -1;
+    }
+  }
+
+  list_append(res, base);
+
+  return res;
 }
 
 // TODO: test this

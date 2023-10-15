@@ -1,7 +1,8 @@
 #pragma once
+#include "../list/list.h"
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include <stdbool.h>
 
 typedef struct {
   char *internal_str;
@@ -12,6 +13,8 @@ typedef struct {
 DynString *dynstring_new();
 
 DynString *dynstring_from(char *from);
+
+DynString *dynstring_from_memcpy(char *from, ssize_t amount);
 
 // Appends another dynstring to the end of this one
 void dynstring_push(DynString *string, DynString *add);
@@ -57,6 +60,9 @@ DynStringParseDouble dynstring_parse_double(DynString *string);
 
 // Compares two DynStrings
 bool dynstring_strcmp(DynString *left, DynString *right);
+
+// Splits the dynstring into components using the given delimeter
+ListNode *dynstring_split(DynString *base, DynString *delimeter);
 
 // Updates the value of the string.
 void dynstring_set(DynString *string, char *content);
