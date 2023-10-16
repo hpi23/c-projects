@@ -191,20 +191,21 @@ bool dynstring_strcmp(DynString *left, DynString *right) {
 }
 
 // TODO: improve this implementation?
-ListNode *dynstring_split(DynString *base, DynString *delimeter) {
+ListNode *__dynstring_split_cstr_internal(DynString *base, char *delimeter, ssize_t delimeter_len, ssize_t limit) {
   ListNode *res = list_new();
 
-  if (delimeter->length == 0 || delimeter->length > base->length) {
+  if (delimeter_len == 0 || delimeter_len > base->length) {
     return res;
   }
 
-  int64_t last_match_pos = 0;
+  ssize_t last_match_pos = 0;
+  ssize_t matches = 0;
 
-  for (ssize_t char_idx = 0; char_idx < base->length; char_idx++) {
+  for (ssize_t char_idx = 0; char_idx < base->length && (matches < limit || limit <= 0); char_idx++) {
     ssize_t match_idx = char_idx;
     ssize_t matched = 0;
 
-    while (delimeter->internal_str[match_idx - char_idx] == base->internal_str[match_idx]) {
+    while (delimeter[match_idx - char_idx] == base->internal_str[match_idx]) {
       match_idx++;
       matched++;
     }
@@ -217,11 +218,23 @@ ListNode *dynstring_split(DynString *base, DynString *delimeter) {
       free(base);
       base = remaining;
       char_idx = -1;
+      matches++;
     }
   }
 
   list_append(res, base);
 
+  return res;
+}
+
+ListNode *dynstring_split_cstr(DynString *base, char *delimeter, ssize_t limit) {
+  return __dynstring_split_cstr_internal(base, delimeter, strlen(delimeter), limit);
+}
+
+ListNode *dynstring_split(DynString *base, DynString *delimeter, ssize_t limit) {
+  char *delimeter_temp = dynstring_as_cstr(delimeter);
+  ListNode *res = __dynstring_split_cstr_internal(base, delimeter_temp, delimeter->length, limit);
+  free(delimeter_temp);
   return res;
 }
 

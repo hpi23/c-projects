@@ -60,17 +60,16 @@ int main() {
   bool cmp_res = dynstring_strcmp(left, right);
   printf("Comparison result: %d\n", cmp_res);
 
-  DynString *to_split = dynstring_from("Hello Mom and Dad!");
-  ListNode *split_original = dynstring_split(to_split, dynstring_from("Hello"));
-  ListNode *split = split_original;
-  while (split != NULL) {
-    char *out = dynstring_as_cstr(split->value);
+  DynString *to_split = dynstring_from("1=2=3=4=5");
+  ListNode *split = dynstring_split(to_split, dynstring_from("="), 3);
+
+  for (int i = 0; i < list_len(split); i++) {
+    char *out = dynstring_as_cstr(list_at(split, i).value);
     printf("`%s`\n", out);
     free(out);
-    free(split->value);
-    split = split->next;
   }
-  list_free(split_original);
+
+  list_free(split);
 
   return 0;
 }
