@@ -1,9 +1,9 @@
+#pragma once
 #include "../hashmap/map.h"
 #include "../list/list.h"
 #include "./lexer.h"
 #include "./token.h"
 #include <stdint.h>
-#include <sys/types.h>
 
 typedef enum {
   JSON_TYPE_OBJECT,
