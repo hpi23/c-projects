@@ -61,7 +61,21 @@ int main() {
   printf("Comparison result: %d\n", cmp_res);
 
   DynString *to_split = dynstring_from("1=2=3=4=5");
-  ListNode *split = dynstring_split(to_split, dynstring_from("="), 3);
+  ListNode *split = dynstring_split(to_split, dynstring_from("="), 2);
+
+  for (int i = 0; i < list_len(split); i++) {
+    char *out = dynstring_as_cstr(list_at(split, i).value);
+    printf("`%s`\n", out);
+    free(out);
+  }
+
+  list_free(split);
+
+  printf("=== Split 2 ===\n");
+
+  to_split = dynstring_from("MAKEFLAGS=");
+
+  split = dynstring_split(to_split, dynstring_from("="), 1);
 
   for (int i = 0; i < list_len(split); i++) {
     char *out = dynstring_as_cstr(list_at(split, i).value);

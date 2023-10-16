@@ -42,6 +42,7 @@ DynString *dynstring_from(char *from) {
 }
 
 DynString *dynstring_from_memcpy(char *from, ssize_t amount) {
+  assert(amount > 0);
   assert(from != NULL);
   ssize_t from_length = amount;
 
@@ -214,11 +215,16 @@ ListNode *__dynstring_split_cstr_internal(DynString *base, char *delimeter, ssiz
       DynString *before = dynstring_from_memcpy(&base->internal_str[last_match_pos], match_idx - last_match_pos - matched);
       list_append(res, before);
 
-      DynString *remaining = dynstring_from_memcpy(&base->internal_str[match_idx], base->length - match_idx);
-      free(base);
-      base = remaining;
-      char_idx = -1;
-      matches++;
+      ssize_t slice_len = base->length - match_idx;
+      if (slice_len > 0) {
+        DynString *remaining = dynstring_from_memcpy(&base->internal_str[match_idx], slice_len);
+        free(base);
+        base = remaining;
+        char_idx = -1;
+        matches++;
+      } else {
+          dynstring_clear(base);
+      }
     }
   }
 
