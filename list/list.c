@@ -46,6 +46,7 @@ ssize_t list_len(struct ListNode *list) {
   ssize_t cnt = 0;
   while (list != NULL && list->is_initialized) {
     cnt++;
+    assert(list != list->next); // cycle detected
     list = list->next;
   }
   return cnt;
