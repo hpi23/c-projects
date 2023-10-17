@@ -223,7 +223,7 @@ ListNode *__dynstring_split_cstr_internal(DynString *base, char *delimeter, ssiz
         char_idx = -1;
         matches++;
       } else {
-          dynstring_clear(base);
+        dynstring_clear(base);
       }
     }
   }
@@ -244,15 +244,37 @@ ListNode *dynstring_split(DynString *base, DynString *delimeter, ssize_t limit) 
   return res;
 }
 
-DynString dynstring_join(ListNode * list, DynString * delim) {
-    // TODO: implement this
+DynString *dynstring_join(ListNode *list, DynString *delim) {
+  DynString *output = dynstring_new();
+
+  ssize_t len = list_len(list);
+
+  for (int i = 0; i < len; i++) {
+    ListGetResult curr = list_at(list, i);
+    assert(curr.found);
+
+    dynstring_push(output, curr.value);
+
+    if (i + 1 < len) {
+      dynstring_push(output, delim);
+    }
+  }
+
+  return output;
 }
 
-void dynstring_replace(DynString *base, DynString *what, ssize_t with) {
-    ListNode * components = dynstring_split(base, what, 0);
+void dynstring_replace(DynString *base_str, DynString *from_str, DynString *what_str) {
+  ListNode *components = dynstring_split(base_str, from_str, 0);
+
+  DynString *temp = dynstring_join(components, what_str);
+  free(base_str->internal_str);
+  base_str->internal_str = temp->internal_str;
+  base_str->length = temp->length;
+  base_str->capacity = temp->capacity;
+  free(temp);
+  list_free(components);
 }
 
-// TODO: test this
 void dynstring_set(DynString *string, char *content) {
   assert(string->internal_str != NULL);
   free(string->internal_str);

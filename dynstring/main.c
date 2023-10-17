@@ -85,5 +85,10 @@ int main() {
 
   list_free(split);
 
+  DynString * replace = dynstring_from("Hello Mom, Hello Dad!");
+  dynstring_replace(replace, dynstring_from("ll"), dynstring_from("XYZ"));
+  dynstring_print(replace);
+  dynstring_free(replace);
+
   return 0;
 }

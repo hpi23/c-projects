@@ -22,6 +22,12 @@ ListNode *dynstring_split_cstr(DynString *base, char *delimeter, ssize_t limit);
 // Splits the dynstring into components using the given delimeter
 ListNode *dynstring_split(DynString *base, DynString *delimeter, ssize_t limit);
 
+// Replaces `from` with `what`
+void dynstring_replace(DynString *base, DynString *from, DynString * what);
+
+// Joins the input list together using the given delimeter
+DynString * dynstring_join(ListNode * list, DynString * delim);
+
 // Appends another dynstring to the end of this one
 void dynstring_push(DynString *string, DynString *add);
 
