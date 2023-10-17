@@ -244,6 +244,14 @@ ListNode *dynstring_split(DynString *base, DynString *delimeter, ssize_t limit) 
   return res;
 }
 
+DynString dynstring_join(ListNode * list, DynString * delim) {
+    // TODO: implement this
+}
+
+void dynstring_replace(DynString *base, DynString *what, ssize_t with) {
+    ListNode * components = dynstring_split(base, what, 0);
+}
+
 // TODO: test this
 void dynstring_set(DynString *string, char *content) {
   assert(string->internal_str != NULL);
