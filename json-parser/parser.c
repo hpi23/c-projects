@@ -124,6 +124,24 @@ JsonParseResult parse_json(JsonParser *parser) {
 
     break;
   }
+    // TODO: do not do this validation anymore
+  case TOKENKIND_NULL: {
+    result.value.type = JSON_TYPE_NULL;
+
+    if (strcmp(parser->curr_tok.value, "null") != 0) {
+      asprintf(&result.error, "Error: exected `null`, got `%s`", parser->curr_tok.value);
+      return result;
+    }
+
+    char *error = parser_next(parser);
+    if (error != NULL) {
+      result.error = error;
+      return result;
+    }
+
+    break;
+  }
+    // TODO: do not do this validation anymore
   case TOKENKIND_BOOL: {
     result.value.type = JSON_TYPE_BOOL;
 
@@ -244,7 +262,8 @@ ParseResultObject parse_object(JsonParser *parser) {
   }
 
   if (parser->curr_tok.kind != TOKENKIND_RBRACE) {
-    asprintf(&result.error, "Error: exected token `%s`, found `%s`", display_tokenkind(TOKENKIND_RBRACE), display_tokenkind(parser->curr_tok.kind));
+    asprintf(&result.error, "Error: expected token `%s` at position %ld, found `%s`", display_tokenkind(TOKENKIND_RBRACE),
+             parser->lexer.curr_loc.index, display_tokenkind(parser->curr_tok.kind));
     return result;
   }
 
@@ -315,7 +334,8 @@ ParseResultArray parser_parse_array(JsonParser *parser) {
   }
 
   if (parser->curr_tok.kind != TOKENKIND_RBRACKET) {
-    asprintf(&result.error, "Error: exected token `%s`, found `%s`", display_tokenkind(TOKENKIND_RBRACKET), display_tokenkind(parser->curr_tok.kind));
+    asprintf(&result.error, "Error: exected token `%s` at position %ld, found `%s`", display_tokenkind(TOKENKIND_RBRACKET),
+             parser->lexer.curr_loc.index, display_tokenkind(parser->curr_tok.kind));
     return result;
   }
 

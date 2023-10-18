@@ -1,5 +1,15 @@
-[
-  {
-    "inner": 42
-  }
-]
+{
+  "content": [
+    {
+      "speiseplanGerichtData": [
+        {
+          "zusatzinformationen": {
+            "bar": {
+              "foo": 1
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

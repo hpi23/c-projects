@@ -10,9 +10,9 @@
 char *__internal_json_value_to_string(JsonValue value, ssize_t indent);
 
 void json_print_value(JsonValue value) {
-    char * res = __internal_json_value_to_string(value, 0);
-    printf("%s\n", res);
-    free(res);
+  char *res = __internal_json_value_to_string(value, 0);
+  printf("%s\n", res);
+  free(res);
 }
 
 char *json_object_to_string(JsonValueObject object, ssize_t indent) {
@@ -36,7 +36,7 @@ char *json_object_to_string(JsonValueObject object, ssize_t indent) {
     dynstring_repeat(indent_buf, indent);
 
     char *indent = dynstring_as_cstr(indent_buf);
-    dynstring_push_fmt(buf, "%s\"%s\": %s", indent, (char *)key.value, value_buf);
+    dynstring_push_fmt(buf, "%s\"%s\": %s", indent, (char *)key.value, value_buf); // A segfault lies here
     free(value_buf);
     free(indent);
     dynstring_free(indent_buf);
@@ -66,18 +66,21 @@ char *json_object_to_string(JsonValueObject object, ssize_t indent) {
 }
 
 char *json_array_to_string(JsonValueArray array, ssize_t indent) {
-  ListNode *list_start = array.fields;
+  ListNode *list = array.fields;
+  ssize_t len = list_len(list);
 
   // detect if the formatting should be multiline
   bool multiline = false;
-  ListNode *list = list_start;
-  while (list != NULL) {
-    JsonValue *val = (JsonValue *)list->value;
+
+  for (int i = 0; i < len; i++) {
+    ListGetResult curr = list_at(list, i);
+    assert(curr.found);
+
+    JsonValue *val = (JsonValue *)curr.value;
     if (val->type == JSON_TYPE_OBJECT || val->type == JSON_TYPE_ARRAY) {
       multiline = true;
       break;
     }
-    list = list->next;
   }
 
   DynString *indent_buf = dynstring_from(" ");
@@ -92,29 +95,30 @@ char *json_array_to_string(JsonValueArray array, ssize_t indent) {
   if (multiline) {
     dynstring_push_char(buf, '\n');
   }
-  list = list_start;
-  while (list != NULL) {
-    assert(list->value != NULL);
-    JsonValue *value = (JsonValue *)list->value;
+
+  for (int i = 0; i < len; i++) {
+    ListGetResult curr = list_at(list, i);
+    assert(curr.found);
+
+    JsonValue *value = (JsonValue *)curr.value;
     char *value_buf = __internal_json_value_to_string(*value, indent + 4);
 
     dynstring_push_fmt(buf, "%s%s", indent_str, value_buf);
     free(value_buf);
-    if (list->next != NULL) {
+    if (i + 1 < len) {
       if (multiline) {
         dynstring_push_string(buf, ",\n");
       } else {
         dynstring_push_string(buf, ", ");
       }
     }
-    list = list->next;
   }
 
   if (multiline) {
     dynstring_push_char(buf, '\n');
-    DynString * indent_buf = dynstring_from(" ");
+    DynString *indent_buf = dynstring_from(" ");
     dynstring_repeat(indent_buf, indent - 4);
-    char * indent_str = dynstring_as_cstr(indent_buf);
+    char *indent_str = dynstring_as_cstr(indent_buf);
     dynstring_push_string(buf, indent_str);
     free(indent_str);
     dynstring_free(indent_buf);
@@ -131,8 +135,14 @@ char *json_array_to_string(JsonValueArray array, ssize_t indent) {
 
 char *json_value_to_string(JsonValue value) { return __internal_json_value_to_string(value, 4); }
 
+// TODO: implement memory free / allocation more elegantly
 char *__internal_json_value_to_string(JsonValue value, ssize_t indent) {
   switch (value.type) {
+  case JSON_TYPE_NULL: {
+    char *buf = malloc(7);
+    memcpy(buf, "Nichts", 6);
+    return buf;
+  }
   case JSON_TYPE_OBJECT:
     return json_object_to_string(value.object, indent);
   case JSON_TYPE_ARRAY:
@@ -151,10 +161,8 @@ char *__internal_json_value_to_string(JsonValue value, ssize_t indent) {
     char *buf = malloc(6);
     if (value.boolean) {
       strcpy(buf, "true");
-      break;
     } else {
       strcpy(buf, "false");
-      break;
     }
     return buf;
   }
@@ -165,8 +173,8 @@ char *__internal_json_value_to_string(JsonValue value, ssize_t indent) {
   }
   }
 
-  puts("Unreachable: every value case is handled above.");
-  exit(1);
+  printf("Unreachable: every value case is handled above. | %d\n", value.type);
+  assert(0);
 }
 
 //

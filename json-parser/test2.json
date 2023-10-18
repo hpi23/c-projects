@@ -1,6 +1,17 @@
 {
-  "a_key": 42,
-  "another": 3.1415,
-  "a_string": "foo-bar",
-  "an_array": [ 1, 2, 3 ]
+  "content": [
+    {
+      "speiseplanGerichtData": [
+        {
+          "zusatzinformationen": {
+            "sustainability": {
+              "co2": null,
+              "nutriscore": null,
+              "trafficLight": null
+            }
+          }
+        }
+      ]
+    }
+  ]
 }

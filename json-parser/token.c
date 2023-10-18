@@ -4,6 +4,8 @@
 
 char *display_tokenkind(TokenKind kind) {
   switch (kind) {
+  case TOKENKIND_NULL:
+    return "NULL";
   case TOKENKIND_LBRACE:
     return "{";
   case TOKENKIND_RBRACE:

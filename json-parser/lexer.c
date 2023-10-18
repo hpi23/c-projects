@@ -23,6 +23,8 @@ Lexer lexer_new(char *input) {
 
 void lexer_free(Lexer *lexer) { free(lexer->input); }
 
+// TODO: improve this: (use make ident)
+
 TokenResult lexer_make_bool(Lexer *lexer) {
   Token bool_tok = {.kind = TOKENKIND_BOOL, .value = NULL};
   TokenResult result = {.error = NULL, .token = bool_tok};
@@ -35,6 +37,23 @@ TokenResult lexer_make_bool(Lexer *lexer) {
   ssize_t inner_str_len = lexer->curr_loc.index - bool_start_idx + 1;
   result.token.value = malloc(sizeof(char) * inner_str_len + 1);
   memcpy(result.token.value, &lexer->input[bool_start_idx - 1], inner_str_len);
+  result.token.value[inner_str_len - 1] = '\0';
+
+  return result;
+}
+
+TokenResult lexer_make_null(Lexer *lexer) {
+  Token null_tok = {.kind = TOKENKIND_NULL, .value = NULL};
+  TokenResult result = {.error = NULL, .token = null_tok};
+
+  ssize_t null_start_idx = lexer->curr_loc.index;
+  while (lexer_char_is_ascii_alphabetic(lexer->curr_char)) {
+    lexer_advance(lexer);
+  }
+
+  ssize_t inner_str_len = lexer->curr_loc.index - null_start_idx + 1;
+  result.token.value = malloc(sizeof(char) * inner_str_len + 1);
+  memcpy(result.token.value, &lexer->input[null_start_idx - 1], inner_str_len);
   result.token.value[inner_str_len - 1] = '\0';
 
   return result;
@@ -146,6 +165,8 @@ TokenResult lexer_next_token(Lexer *lexer) {
   case 't':
   case 'f':
     return lexer_make_bool(lexer);
+  case 'n':
+    return lexer_make_null(lexer);
   case '\0' | -1:
     result.token.kind = TOKENKIND_EOF;
     result.token.value = "EOF";
