@@ -34,5 +34,4 @@ typedef struct {
 
 void json_print_value(JsonValue value);
 char *json_value_to_string(JsonValue value);
-char *json_value_to_string(JsonValue value);
 void json_value_free(JsonValue value);

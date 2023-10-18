@@ -16,6 +16,8 @@ char *display_tokenkind(TokenKind kind) {
     return "]";
   case TOKENKIND_STRING:
     return "STRING";
+  case TOKENKIND_BOOL:
+    return "BOOL";
   case TOKENKIND_COLON:
     return ":";
   case TOKENKIND_COMMA:
@@ -25,7 +27,7 @@ char *display_tokenkind(TokenKind kind) {
   case TOKENKIND_FLOAT:
     return "FLOAT";
   }
-  printf("Unreachable: Illegal tokenkind");
+  printf("Unreachable: Illegal tokenkind\n");
   exit(1);
 }
 

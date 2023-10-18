@@ -1,16 +1,5 @@
-{
-  "a_key": 42,
-  "another": 3.1415,
-  "a_string": "foo-bar",
-  "an_array": [ 1, 2, 3 ],
-  "multiline_array": [
-    {
-      "key": "foo",
-      "value": "bar"
-    }
-  ],
-  "nested_object": {
-    "nested_key": 69,
-    "another": "Hello World!"
+[
+  {
+    "inner": 42
   }
-}
+]

@@ -9,7 +9,11 @@
 
 char *__internal_json_value_to_string(JsonValue value, ssize_t indent);
 
-void json_print_value(JsonValue value) { puts(__internal_json_value_to_string(value, 0)); }
+void json_print_value(JsonValue value) {
+    char * res = __internal_json_value_to_string(value, 0);
+    printf("%s\n", res);
+    free(res);
+}
 
 char *json_object_to_string(JsonValueObject object, ssize_t indent) {
   assert(object.fields != NULL);

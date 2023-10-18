@@ -7,6 +7,7 @@
 #include <sys/types.h>
 
 static inline bool lexer_char_is_ascii_digit(char input) { return input >= 0x30 && input <= 0x39; }
+static inline bool lexer_char_is_ascii_alphabetic(char input) { return input >= 0x61 && input <= 0x7a; }
 
 void lexer_advance(Lexer *lexer) {
   lexer->curr_char = lexer->input[lexer->curr_loc.index]; // TODO: is this OK?
@@ -20,8 +21,23 @@ Lexer lexer_new(char *input) {
   return lexer;
 }
 
-void lexer_free(Lexer *lexer) {
-    free(lexer->input);
+void lexer_free(Lexer *lexer) { free(lexer->input); }
+
+TokenResult lexer_make_bool(Lexer *lexer) {
+  Token bool_tok = {.kind = TOKENKIND_BOOL, .value = NULL};
+  TokenResult result = {.error = NULL, .token = bool_tok};
+
+  ssize_t bool_start_idx = lexer->curr_loc.index;
+  while (lexer_char_is_ascii_alphabetic(lexer->curr_char)) {
+    lexer_advance(lexer);
+  }
+
+  ssize_t inner_str_len = lexer->curr_loc.index - bool_start_idx + 1;
+  result.token.value = malloc(sizeof(char) * inner_str_len + 1);
+  memcpy(result.token.value, &lexer->input[bool_start_idx - 1], inner_str_len);
+  result.token.value[inner_str_len - 1] = '\0';
+
+  return result;
 }
 
 TokenResult lexer_make_string(Lexer *lexer) {
@@ -127,6 +143,9 @@ TokenResult lexer_next_token(Lexer *lexer) {
     break;
   case '"':
     return lexer_make_string(lexer);
+  case 't':
+  case 'f':
+    return lexer_make_bool(lexer);
   case '\0' | -1:
     result.token.kind = TOKENKIND_EOF;
     result.token.value = "EOF";
@@ -136,7 +155,7 @@ TokenResult lexer_next_token(Lexer *lexer) {
       return lexer_make_number(lexer);
     }
 
-    asprintf(&result.error, "Error: illegal character `%c`", lexer->curr_char);
+    asprintf(&result.error, "Error: illegal character at position %ld '%c'", lexer->curr_loc.index, lexer->curr_char);
     return result;
   }
 

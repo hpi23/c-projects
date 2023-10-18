@@ -9,6 +9,7 @@
 #include <string.h>
 
 #include "../hashmap/map.h"
+#include "json.h"
 
 void parser_free_token(Token token) {
   switch (token.kind) {
@@ -110,7 +111,7 @@ JsonParseResult parse_json(JsonParser *parser) {
 
     break;
   }
-  case TOKENKIND_STRING:
+  case TOKENKIND_STRING: {
     result.value.type = JSON_TYPE_STRING;
     result.value.string = malloc(strlen(parser->curr_tok.value) + 1);
     strcpy(result.value.string, parser->curr_tok.value);
@@ -122,6 +123,27 @@ JsonParseResult parse_json(JsonParser *parser) {
     }
 
     break;
+  }
+  case TOKENKIND_BOOL: {
+    result.value.type = JSON_TYPE_BOOL;
+
+    if (strcmp(parser->curr_tok.value, "true") == 0) {
+      result.value.boolean = true;
+    } else if (strcmp(parser->curr_tok.value, "false") == 0) {
+      result.value.boolean = false;
+    } else {
+      asprintf(&result.error, "Error: exected either `true` or `false`, got `%s`", parser->curr_tok.value);
+      return result;
+    }
+
+    char *error = parser_next(parser);
+    if (error != NULL) {
+      result.error = error;
+      return result;
+    }
+
+    break;
+  }
   default:
     asprintf(&result.error, "Error: exected JSON value, got `%s`", display_tokenkind(parser->curr_tok.kind));
     return result;
