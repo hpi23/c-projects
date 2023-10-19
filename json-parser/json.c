@@ -30,14 +30,19 @@ char *json_object_to_string(JsonValueObject object, ssize_t indent) {
     MapGetResult value = hashmap_get(object.fields, (char *)key.value);
     assert(value.found);
 
-    char *value_buf = __internal_json_value_to_string(*(JsonValue *)value.value, indent + 4);
+    JsonValue val = *(JsonValue *)value.value;
+    char *value_buf = __internal_json_value_to_string(val, indent + 4);
 
     DynString *indent_buf = dynstring_from(" ");
     dynstring_repeat(indent_buf, indent);
 
     char *indent = dynstring_as_cstr(indent_buf);
     dynstring_push_fmt(buf, "%s\"%s\": %s", indent, (char *)key.value, value_buf); // A segfault lies here
-    free(value_buf);
+
+    if (val.type != JSON_TYPE_BOOL && val.type != JSON_TYPE_NULL) {
+      free(value_buf);
+    }
+
     free(indent);
     dynstring_free(indent_buf);
 
@@ -139,9 +144,7 @@ char *json_value_to_string(JsonValue value) { return __internal_json_value_to_st
 char *__internal_json_value_to_string(JsonValue value, ssize_t indent) {
   switch (value.type) {
   case JSON_TYPE_NULL: {
-    char *buf = malloc(7);
-    memcpy(buf, "Nichts", 6);
-    return buf;
+    return "Nichts";
   }
   case JSON_TYPE_OBJECT:
     return json_object_to_string(value.object, indent);
@@ -158,13 +161,11 @@ char *__internal_json_value_to_string(JsonValue value, ssize_t indent) {
     return buf;
   }
   case JSON_TYPE_BOOL: {
-    char *buf = malloc(6);
     if (value.boolean) {
-      strcpy(buf, "true");
+      return "true";
     } else {
-      strcpy(buf, "false");
+      return "false";
     }
-    return buf;
   }
   case JSON_TYPE_STRING: {
     char *buf;
@@ -208,12 +209,14 @@ void json_value_object_free(JsonValueObject obj) {
 void json_value_array_free(JsonValueArray value) {
   ListNode *elements = value.fields;
 
-  while (elements != NULL) {
-    JsonValue *current = (JsonValue *)elements->value;
+  ssize_t len = list_len(elements);
+
+  for (int i = 0; i < len; i++) {
+    ListGetResult res = list_at(elements, i);
+
+    JsonValue *current = (JsonValue *)res.value;
     json_value_free(*current);
     free(current);
-
-    elements = elements->next;
   }
 
   list_free(value.fields);

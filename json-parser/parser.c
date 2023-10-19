@@ -16,6 +16,8 @@ void parser_free_token(Token token) {
   case TOKENKIND_STRING:
   case TOKENKIND_INT:
   case TOKENKIND_FLOAT:
+  case TOKENKIND_BOOL:
+  case TOKENKIND_NULL:
     free(token.value);
   default:
     // no need to free tokens which are not heap-allocated
@@ -31,10 +33,15 @@ void parser_free(JsonParser *parser) {
 char *parser_next(JsonParser *parser) {
   parser_free_token(parser->curr_tok);
   TokenResult result = lexer_next_token(&parser->lexer);
+
   parser->curr_tok = result.token;
+
+  printf("Token: %s | %c\n", display_tokenkind(parser->curr_tok.kind), parser->lexer.curr_char);
+
   if (result.error != NULL) {
     return result.error;
   }
+
   return NULL;
 }
 
@@ -129,7 +136,7 @@ JsonParseResult parse_json(JsonParser *parser) {
     result.value.type = JSON_TYPE_NULL;
 
     if (strcmp(parser->curr_tok.value, "null") != 0) {
-      asprintf(&result.error, "Error: exected `null`, got `%s`", parser->curr_tok.value);
+      asprintf(&result.error, "Error: expected `null`, got `%s`", parser->curr_tok.value);
       return result;
     }
 
@@ -150,7 +157,7 @@ JsonParseResult parse_json(JsonParser *parser) {
     } else if (strcmp(parser->curr_tok.value, "false") == 0) {
       result.value.boolean = false;
     } else {
-      asprintf(&result.error, "Error: exected either `true` or `false`, got `%s`", parser->curr_tok.value);
+      asprintf(&result.error, "Error: expected either `true` or `false`, got `%s`", parser->curr_tok.value);
       return result;
     }
 
@@ -163,7 +170,7 @@ JsonParseResult parse_json(JsonParser *parser) {
     break;
   }
   default:
-    asprintf(&result.error, "Error: exected JSON value, got `%s`", display_tokenkind(parser->curr_tok.kind));
+    asprintf(&result.error, "Error: expected JSON value, got `%s`", display_tokenkind(parser->curr_tok.kind));
     return result;
   }
 
@@ -262,8 +269,8 @@ ParseResultObject parse_object(JsonParser *parser) {
   }
 
   if (parser->curr_tok.kind != TOKENKIND_RBRACE) {
-    asprintf(&result.error, "Error: expected token `%s` at position %ld, found `%s`", display_tokenkind(TOKENKIND_RBRACE),
-             parser->lexer.curr_loc.index, display_tokenkind(parser->curr_tok.kind));
+    asprintf(&result.error, "Error: expected token `%s` at position %ld, found `%s` (%s)", display_tokenkind(TOKENKIND_RBRACE),
+             parser->lexer.curr_loc.index, display_tokenkind(parser->curr_tok.kind), parser->curr_tok.value);
     return result;
   }
 
@@ -334,7 +341,7 @@ ParseResultArray parser_parse_array(JsonParser *parser) {
   }
 
   if (parser->curr_tok.kind != TOKENKIND_RBRACKET) {
-    asprintf(&result.error, "Error: exected token `%s` at position %ld, found `%s`", display_tokenkind(TOKENKIND_RBRACKET),
+    asprintf(&result.error, "Error: expected token `%s` at position %ld, found `%s`", display_tokenkind(TOKENKIND_RBRACKET),
              parser->lexer.curr_loc.index, display_tokenkind(parser->curr_tok.kind));
     return result;
   }

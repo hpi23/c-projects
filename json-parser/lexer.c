@@ -1,4 +1,5 @@
 #include "./lexer.h"
+#include "../dynstring/dynstring.h"
 #include "token.h"
 #include <stdbool.h>
 #include <stdio.h>
@@ -15,8 +16,9 @@ void lexer_advance(Lexer *lexer) {
 }
 
 Lexer lexer_new(char *input) {
+  int input_len = strlen(input);
   Location loc = {.index = 0};
-  Lexer lexer = {.input = input, .curr_loc = loc, .curr_char = '0'};
+  Lexer lexer = {.input = input, .curr_loc = loc, .curr_char = '?'};
   lexer_advance(&lexer);
   return lexer;
 }
@@ -65,9 +67,10 @@ TokenResult lexer_make_string(Lexer *lexer) {
   // skip opening quote
   lexer_advance(lexer);
 
-  ssize_t string_inner_start_idx = lexer->curr_loc.index;
+  DynString *out = dynstring_new();
 
   while (lexer->curr_char != '"' && lexer->curr_char != '\0') {
+    dynstring_push_char(out, lexer->curr_char);
     lexer_advance(lexer);
   }
 
@@ -78,10 +81,8 @@ TokenResult lexer_make_string(Lexer *lexer) {
   }
   lexer_advance(lexer);
 
-  ssize_t inner_str_len = lexer->curr_loc.index - string_inner_start_idx;
-  result.token.value = malloc(sizeof(char) * inner_str_len + 1);
-  memcpy(result.token.value, &lexer->input[string_inner_start_idx - 1], inner_str_len);
-  result.token.value[inner_str_len - 1] = '\0';
+  result.token.value = dynstring_as_cstr(out);
+  dynstring_free(out);
 
   return result;
 }
@@ -124,14 +125,15 @@ TokenResult lexer_make_number(Lexer *lexer) {
 }
 
 TokenResult lexer_next_token(Lexer *lexer) {
-  TokenResult result = {.error = NULL, .token = token_new_eof()};
+  TokenResult result = {.error = NULL};
 
-  // EoF is reached, stop here
-  if (lexer->curr_loc.index >= strlen(lexer->input)) {
+  // EoF is reached, stop here | IS this OK
+  // TODO: this is required for the mensa Griebnitzsee API, but why?
+  if (lexer->curr_loc.index >= strlen(lexer->input) + 1) {
     return result;
   }
 
-  while (lexer->curr_char == ' ' || lexer->curr_char == '\n' || lexer->curr_char == '\t') {
+  while (lexer->curr_char == ' ' || lexer->curr_char == '\n' || lexer->curr_char == '\t' || lexer->curr_char == '\r') {
     lexer_advance(lexer);
   }
 
@@ -167,7 +169,8 @@ TokenResult lexer_next_token(Lexer *lexer) {
     return lexer_make_bool(lexer);
   case 'n':
     return lexer_make_null(lexer);
-  case '\0' | -1:
+  case '\0':
+  case -1:
     result.token.kind = TOKENKIND_EOF;
     result.token.value = "EOF";
     break;
@@ -176,7 +179,7 @@ TokenResult lexer_next_token(Lexer *lexer) {
       return lexer_make_number(lexer);
     }
 
-    asprintf(&result.error, "Error: illegal character at position %ld '%c'", lexer->curr_loc.index, lexer->curr_char);
+    asprintf(&result.error, "Error: illegal character at position %ld (%d) '%d'", lexer->curr_loc.index, lexer->curr_char, lexer->curr_char);
     return result;
   }
 

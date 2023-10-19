@@ -56,7 +56,7 @@ int main() {
 
   parser_free(&parser);
 
-  // json_print_value(parse_result.value);
+  json_print_value(parse_result.value);
   char * str = json_value_to_string(parse_result.value);
   printf("%s\n", str);
   free(str);
