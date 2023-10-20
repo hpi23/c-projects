@@ -36,8 +36,6 @@ char *parser_next(JsonParser *parser) {
 
   parser->curr_tok = result.token;
 
-  printf("Token: %s | %c\n", display_tokenkind(parser->curr_tok.kind), parser->lexer.curr_char);
-
   if (result.error != NULL) {
     return result.error;
   }

@@ -12,6 +12,8 @@ typedef struct {
 
 DynString *dynstring_new();
 
+DynString *dynstring_clone(DynString *input);
+
 DynString *dynstring_from(char *from);
 
 DynString *dynstring_from_memcpy(char *from, ssize_t amount);
