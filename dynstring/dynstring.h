@@ -25,10 +25,10 @@ ListNode *dynstring_split_cstr(DynString *base, char *delimeter, ssize_t limit);
 ListNode *dynstring_split(DynString *base, DynString *delimeter, ssize_t limit);
 
 // Replaces `from` with `what`
-void dynstring_replace(DynString *base, DynString *from, DynString * what);
+void dynstring_replace(DynString *base, DynString *from, DynString *what);
 
 // Joins the input list together using the given delimeter
-DynString * dynstring_join(ListNode * list, DynString * delim);
+DynString *dynstring_join(ListNode *list, DynString *delim);
 
 // Appends another dynstring to the end of this one
 void dynstring_push(DynString *string, DynString *add);
@@ -41,10 +41,12 @@ void dynstring_push_string(DynString *string, char *add);
 
 // This needs to be a macro because of weird varargs in c.
 #define dynstring_push_fmt(dynstring, fmt, ...)                                                                                                      \
-  char *__internal_buf;                                                                                                                              \
-  asprintf(&__internal_buf, fmt, ##__VA_ARGS__);                                                                                                     \
-  dynstring_push_string(dynstring, __internal_buf);                                                                                                  \
-  free(__internal_buf);
+  {                                                                                                                                                  \
+    char *__internal_buf;                                                                                                                            \
+    asprintf(&__internal_buf, fmt, ##__VA_ARGS__);                                                                                                   \
+    dynstring_push_string(dynstring, __internal_buf);                                                                                                \
+    free(__internal_buf);                                                                                                                            \
+  }
 
 // Converts the underlying string to a c-string.
 // Adds a NULL-terminator.
