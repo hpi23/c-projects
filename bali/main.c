@@ -9,12 +9,10 @@
 #include <unistd.h>
 
 int main() {
-  for (int i = 0; i < 100; i++) {
-    MyClass *obj = new_MyClass(11);
-    printf("Before: %ld\n", obj->get_value());
-    obj->set_value(42);
-    printf("After: %ld\n", obj->get_value());
-  }
+  MyClass *obj = new_MyClass(11);
+  printf("Before: %ld\n", obj->get_value());
+  obj->set_value(42);
+  printf("After: %ld\n", obj->get_value());
 
   return 0;
 }

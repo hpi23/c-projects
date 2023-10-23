@@ -15,7 +15,7 @@ MyClassMethods new_dispatcher(MyClass *ptr_to_instance) { // returns the instanc
 
   unsigned long long instance = (unsigned long long)(tv.tv_sec) * 1000 + (unsigned long long)(tv.tv_usec) / 1000;
 
-  DynString *LIB_PREFIX = dynstring_from("jakarta_MyClass_instance-");
+  DynString *LIB_PREFIX = dynstring_from("bali_MyClass_instance-");
   dynstring_push_fmt(LIB_PREFIX, "%lld", instance);
 
   // Create C file
