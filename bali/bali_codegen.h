@@ -1,3 +1,4 @@
+#pragma once
 #include "../dynstring/dynstring.h"
 
 typedef struct {
@@ -13,4 +14,4 @@ typedef struct {
   ssize_t len_args;
 } Function;
 
-DynString *bali_codegen(ListNode *functions, char *class_header);
+DynString *bali_codegen(Function *functions, ssize_t num_functions, char *class_header, void * instance_ptr);

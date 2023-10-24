@@ -1,6 +1,5 @@
 #include "../dynstring/dynstring.h"
 #include "../hashmap/map.h"
-#include "./MyClass.h"
 #include "./bali_codegen.h"
 #include <assert.h>
 #include <dirent.h>
@@ -12,22 +11,11 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-  //
-  // int64_t myclass_get_value(MyClass * this) { return this->value; }
-  // void myclass_set_value(MyClass * this, int64_t value) { this->value = value; }
-  // \n\
-  //   \n void set_value_wrapper_ % lld(int64_t value) {
-  //   \n myclass_set_value((MyClass *) % p, value);
-  //   \n
-  // }
-  // \n\
-  //   \n int64_t get_value_wrapper_ % lld() {
-  //   \n return myclass_get_value((MyClass *) % p);
-  //   \n
-  // }
-  // \n
+#define BALI_VERBOSE 1
+#define MAKE_VERBOSE 1
 
-MyClassMethods new_dispatcher(ListNode *functions, void *ptr_to_instance, char *class_name, char *class_header_path) {
+// Hashmap<fn-ptr>
+HashMap *new_dispatcher(Function *functions, ssize_t num_functions, void *ptr_to_instance, char *class_name, char *class_header_path) {
   // Setup instance name and prefix
   struct timeval tv;
   gettimeofday(&tv, NULL);
@@ -48,18 +36,18 @@ MyClassMethods new_dispatcher(ListNode *functions, void *ptr_to_instance, char *
   dynstring_push_string(c_file, ".c");
   char *path_c = dynstring_as_cstr(c_file);
 
-  if (MyClass_VERBOSE) {
+  if (BALI_VERBOSE) {
     printf("\tGenerating dynamic C code for instance %lld...\n", instance);
   }
 
   fp = fopen(path_c, "a");
 
-  DynString * file_contents = bali_codegen(functions, class_header_path);
+  DynString *file_contents = bali_codegen(functions, num_functions, class_header_path, ptr_to_instance);
 
   fprintf(fp, "%s", dynstring_as_cstr(file_contents));
   fclose(fp);
 
-  if (MyClass_VERBOSE) {
+  if (BALI_VERBOSE) {
     printf("\tCompiling dispatcher code for instance %lld...\n", instance);
   }
 
@@ -67,17 +55,23 @@ MyClassMethods new_dispatcher(ListNode *functions, void *ptr_to_instance, char *
   DynString *command = dynstring_from("make FILE=");
   dynstring_push(command, LIB_PREFIX);
   dynstring_push_string(command, ".c");
+
+  DynString * class_c_file = dynstring_from(class_header_path);
+  dynstring_replace(class_c_file, dynstring_from(".h"), dynstring_from(""));
+  dynstring_push_string(class_c_file, "_methods.c");
+  dynstring_push_fmt(command, " COMPILE_WITH=%s", dynstring_as_cstr(class_c_file));
+
   char *os_cmd = dynstring_as_cstr(command);
 
   FILE *cmd = popen(os_cmd, "r");
   char result[10000] = {0x0};
   while (fgets(result, sizeof(result), cmd) != NULL)
-    if (MyClass_MAKE_VERBOSE) {
+    if (MAKE_VERBOSE) {
       printf("\t%s\n", result);
     }
   pclose(cmd);
 
-  if (MyClass_VERBOSE) {
+  if (BALI_VERBOSE) {
     printf("\tCompilation for instance %lld finished.\n", instance);
   }
 
@@ -87,40 +81,39 @@ MyClassMethods new_dispatcher(ListNode *functions, void *ptr_to_instance, char *
 
   char *path_so = dynstring_as_cstr(so_path);
 
-  if (MyClass_VERBOSE) {
+  if (BALI_VERBOSE) {
     printf("\tLoading shared object file for instance %lld: (%s)...\n", instance, path_so);
   }
 
   void *loaded = dlopen(path_so, RTLD_NOW);
   if (!loaded) {
     printf("%s\n", dlerror());
-    exit(1);
-  }
-
-  DynString *set_value_name = dynstring_from("set_value_wrapper_");
-  dynstring_push_fmt(set_value_name, "%lld", instance);
-
-  void (*set_value)(int64_t) = dlsym(loaded, dynstring_as_cstr(set_value_name));
-  if ((error = dlerror()) != NULL) {
-    fputs(error, stderr);
-    exit(1);
-  }
-
-  DynString *get_value_name = dynstring_from("get_value_wrapper_");
-  dynstring_push_fmt(get_value_name, "%lld", instance);
-
-  int64_t (*get_value)(void) = dlsym(loaded, dynstring_as_cstr(get_value_name));
-  if ((error = dlerror()) != NULL) {
-    fputs(error, stderr);
-    exit(1);
-  }
-
-  if (MyClass_VERBOSE) {
-    printf("\tShared object file and dispatcher functions for instance %lld loaded.\n", instance);
+    assert(0);
   }
 
   // dlclose(loaded);
 
-  MyClassMethods res = {.set_value = set_value, .get_value = get_value};
-  return res;
+  HashMap *methods = hashmap_new();
+
+  for (int i = 0; i < num_functions; i++) {
+    DynString *method_name = dynstring_from("bali_");
+    dynstring_push_string(method_name, functions[i].name);
+
+    char *name_cstr = dynstring_as_cstr(method_name);
+    printf("\tLoading func: %s\n", name_cstr);
+    void *(*method_res)(void) = dlsym(loaded, name_cstr);
+    if ((error = dlerror()) != NULL) {
+      fputs(error, stderr);
+      assert(0);
+    }
+
+    hashmap_insert(methods, functions[i].name, method_res);
+    dynstring_free(method_name);
+  }
+
+  if (BALI_VERBOSE) {
+    printf("\tShared object file and dispatcher functions for instance %lld loaded.\n", instance);
+  }
+
+  return methods;
 }

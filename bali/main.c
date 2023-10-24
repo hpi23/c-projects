@@ -13,6 +13,7 @@ int main() {
   printf("Before: %ld\n", obj->get_value());
   obj->set_value(42);
   printf("After: %ld\n", obj->get_value());
+  obj->print();
 
   return 0;
 }

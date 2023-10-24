@@ -1,10 +1,10 @@
 #include "./MyClass.h"
-#include "./MyClass_dispatcher.h"
+#include "bali_codegen.h"
+#include "bali_dispatcher.h"
+#include <assert.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-
-MyClassMethods new_dispatcher(MyClass *ptr_to_instance);
 
 MyClass *new_MyClass(int64_t value) {
   MyClass temp = {.value = value};
@@ -15,18 +15,45 @@ MyClass *new_MyClass(int64_t value) {
     printf("=== Configuring new instance ===\n");
   }
 
-  MyClassMethods methods = new_dispatcher(ptr_temp);
-  temp.set_value = methods.set_value;
-  temp.get_value = methods.get_value;
+  ssize_t num_functions = 3;
+  Function *functions = malloc(sizeof(Function) * num_functions);
+  functions[0].name = "myclass_get_value";
+  functions[0].len_args = 0;
+  functions[0].return_value = "int64_t";
+
+  functions[1].name = "myclass_set_value";
+  functions[1].len_args = 1;
+  functions[1].args = malloc(sizeof(FunctionArg));
+  functions[1].args[0].name = "value";
+  functions[1].args[0].type = "int64_t";
+  functions[1].return_value = "void";
+
+  functions[2].name = "myclass_print";
+  functions[2].len_args = 0;
+  functions[2].return_value = "void";
+
+  HashMap *methods = new_dispatcher(functions, num_functions, ptr_temp, "MyClass", "MyClass.h");
+
+  MapGetResult res = hashmap_get(methods, "myclass_get_value");
+  assert(res.found);
+  temp.get_value = res.value;
+
+  res = hashmap_get(methods, "myclass_set_value");
+  assert(res.found);
+  temp.set_value = res.value;
+
+  res = hashmap_get(methods, "myclass_print");
+  assert(res.found);
+  temp.print = res.value;
+
+  // temp.set_value = methods.set_value;
+  // temp.get_value = methods.get_value;
 
   if (MyClass_VERBOSE) {
-    printf("\tDynamic dispatch configured: (set=%p) (get=%p)\n", temp.set_value, temp.get_value);
+    printf("\tDynamic dispatch configured.\n");
     printf("=== New instance configured ===\n");
   }
 
   *ptr_temp = temp;
   return ptr_temp;
 }
-
-int64_t myclass_get_value(MyClass *this) { return this->value; }
-void myclass_set_value(MyClass *this, int64_t value) { this->value = value; }
