@@ -223,11 +223,27 @@ bool dynstring_strcmp(DynString *left, DynString *right) {
   return true;
 }
 
+bool dynstring_contains(DynString *base, DynString *test) {
+  ListNode *split = dynstring_split(base, test, 0);
+  ssize_t len = list_len(split);
+
+  for (int i = 0; i < len; i++) {
+    ListGetResult res = list_at(split, i);
+    assert(res.found);
+    dynstring_free(res.value);
+  }
+
+  list_free(split);
+
+  return len > 1;
+}
+
 // TODO: improve this implementation?
 ListNode *__dynstring_split_cstr_internal(DynString *base_from, char *delimeter, ssize_t delimeter_len, ssize_t limit) {
   ListNode *res = list_new();
 
   if (delimeter_len == 0 || delimeter_len > base_from->length) {
+    list_append(res, dynstring_clone(base_from));
     return res;
   }
 
@@ -245,9 +261,14 @@ ListNode *__dynstring_split_cstr_internal(DynString *base_from, char *delimeter,
       matched++;
     }
 
-    if (matched > 0) {
-      DynString *before = dynstring_from_memcpy(&base->internal_str[last_match_pos], match_idx - last_match_pos - matched);
-      list_append(res, before);
+    if (matched == delimeter_len) {
+      ssize_t new_len = match_idx - last_match_pos - matched;
+      if (new_len == 0) {
+        list_append(res, dynstring_new());
+      } else {
+        DynString *before = dynstring_from_memcpy(&base->internal_str[last_match_pos], new_len);
+        list_append(res, before);
+      }
 
       ssize_t slice_len = base->length - match_idx;
       if (slice_len > 0) {

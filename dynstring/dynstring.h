@@ -24,6 +24,8 @@ ListNode *dynstring_split_cstr(DynString *base, char *delimeter, ssize_t limit);
 // Splits the dynstring into components using the given delimeter
 ListNode *dynstring_split(DynString *base, DynString *delimeter, ssize_t limit);
 
+bool dynstring_contains(DynString * base, DynString * test);
+
 // Replaces `from` with `what`
 void dynstring_replace(DynString *base, DynString *from, DynString *what);
 
