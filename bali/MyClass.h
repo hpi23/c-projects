@@ -1,8 +1,7 @@
 #pragma once
 #include <stdint.h>
 
-#define MyClass_VERBOSE 1
-#define MyClass_MAKE_VERBOSE 0
+#define MyClass_VERBOSE 0
 
 // int64_t this.get_value()
 // void this.set_value(int64_t value)

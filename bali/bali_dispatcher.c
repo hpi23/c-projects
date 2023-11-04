@@ -11,8 +11,8 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#define BALI_VERBOSE 1
-#define MAKE_VERBOSE 1
+#define BALI_VERBOSE 0
+#define MAKE_VERBOSE 0
 
 // Hashmap<fn-ptr>
 HashMap *new_dispatcher(Function *functions, ssize_t num_functions, void *ptr_to_instance, char *class_name, char *class_header_path) {
@@ -56,7 +56,7 @@ HashMap *new_dispatcher(Function *functions, ssize_t num_functions, void *ptr_to
   dynstring_push(command, LIB_PREFIX);
   dynstring_push_string(command, ".c");
 
-  DynString * class_c_file = dynstring_from(class_header_path);
+  DynString *class_c_file = dynstring_from(class_header_path);
   dynstring_replace(class_c_file, dynstring_from(".h"), dynstring_from(""));
   dynstring_push_string(class_c_file, "_methods.c");
   dynstring_push_fmt(command, " COMPILE_WITH=%s", dynstring_as_cstr(class_c_file));
@@ -100,7 +100,9 @@ HashMap *new_dispatcher(Function *functions, ssize_t num_functions, void *ptr_to
     dynstring_push_string(method_name, functions[i].name);
 
     char *name_cstr = dynstring_as_cstr(method_name);
-    printf("\tLoading func: %s\n", name_cstr);
+    if (BALI_VERBOSE) {
+      printf("\tLoading func: %s\n", name_cstr);
+    }
     void *(*method_res)(void) = dlsym(loaded, name_cstr);
     if ((error = dlerror()) != NULL) {
       fputs(error, stderr);
