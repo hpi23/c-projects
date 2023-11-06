@@ -70,6 +70,20 @@ TokenResult lexer_make_string(Lexer *lexer) {
   DynString *out = dynstring_new();
 
   while (lexer->curr_char != '"' && lexer->curr_char != '\0') {
+    if (lexer->curr_char == '\\') {
+      lexer_advance(lexer);
+
+      switch (lexer->curr_char) {
+      case '"':
+        dynstring_push_char(out, '"');
+        lexer_advance(lexer);
+        continue;
+      default:
+        asprintf(&result.error, "Error: expected escape sequence, found `%c`", lexer->curr_char);
+        return result;
+      }
+    }
+
     dynstring_push_char(out, lexer->curr_char);
     lexer_advance(lexer);
   }
