@@ -2,6 +2,7 @@
 #include "../dynstring/dynstring.h"
 #include "token.h"
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -74,8 +75,31 @@ TokenResult lexer_make_string(Lexer *lexer) {
       lexer_advance(lexer);
 
       switch (lexer->curr_char) {
-      case '"':
+      case '"': // String quote escape
         dynstring_push_char(out, '"');
+        lexer_advance(lexer);
+        continue;
+      case 'u': { // Unicode escape
+        uint16_t n = 0;
+
+        for (int i = 0; i < 4; i++) {
+          lexer_advance(lexer);
+          if (lexer->curr_char > 0) {
+            n = (n << 4) + lexer->curr_char;
+          } else {
+            asprintf(&result.error, "Error: invalid escape sequence, found `%c` before end of sequence", lexer->curr_char);
+            return result;
+          }
+        }
+
+        continue;
+      }
+      case 'n':
+        dynstring_push_char(out, '\n');
+        lexer_advance(lexer);
+        continue;
+      case '/':
+        dynstring_push_char(out, '/');
         lexer_advance(lexer);
         continue;
       default:
