@@ -1,5 +1,5 @@
-#include "../dynstring/dynstring.h"
-#include "./parser.h"
+#include "../../dynstring/dynstring.h"
+#include "../parser.h"
 #include <stdio.h>
 
 #define TEST_FILE "test.json"

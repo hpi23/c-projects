@@ -1,14 +1,14 @@
-main: dynstring.c main.c
-	gcc -Wall -ggdb3 \
-		dynstring.c \
-		../list/list.c \
-		main.c -o main
+SRC_DIR := .
+OBJ_DIR := ./obj
+SRC_FILES := $(wildcard $(SRC_DIR)/*.c)
+OBJ_FILES := $(patsubst $(SRC_DIR)/%.c,$(OBJ_DIR)/%.o,$(SRC_FILES))
 
-valgrind: main
-	valgrind --leak-check=full \
-         --show-leak-kinds=all \
-         --track-origins=yes \
-         --verbose ./main
+archiver := ar
+gcc := gcc
 
-run: main
-	./main
+libSAP.a: $(OBJ_FILES)
+	@echo $(OBJ_FILES)
+	$(archiver) -cq libDynstring.a $(OBJ_FILES)
+
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
+	gcc -c -o $@ $<

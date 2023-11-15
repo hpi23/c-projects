@@ -1,20 +1,14 @@
-main: main.c parser.c lexer.c token.c json.c ../dynstring/*
-	gcc -Wall -ggdb \
-		parser.c \
-		lexer.c \
-		token.c \
-		json.c \
-		main.c \
-		../hashmap/map.c \
-		../list/list.c \
-		../dynstring/dynstring.c \
-		-o main
+SRC_DIR := .
+OBJ_DIR := ./obj
+SRC_FILES := $(wildcard $(SRC_DIR)/*.c)
+OBJ_FILES := $(patsubst $(SRC_DIR)/%.c,$(OBJ_DIR)/%.o,$(SRC_FILES))
 
-valgrind: main
-	valgrind --leak-check=full \
-         --show-leak-kinds=all \
-         --track-origins=yes \
-         --verbose ./main
+archiver := ar
+gcc := gcc
 
-run: main
-	./main
+libSAP.a: $(OBJ_FILES)
+	@echo $(OBJ_FILES)
+	$(archiver) -cq libJson.a $(OBJ_FILES)
+
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
+	gcc -c -o $@ $<
