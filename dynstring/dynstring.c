@@ -225,6 +225,20 @@ bool dynstring_strcmp(DynString *left, DynString *right) {
   return true;
 }
 
+bool dynstring_strcmp_c(DynString *left, char *right) {
+  if (left->length != strlen(right)) {
+    return false;
+  }
+
+  for (int i = 0; i < left->length; i++) {
+    if (left->internal_str[i] != right[i]) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 bool dynstring_contains(DynString *base, DynString *test) {
   ListNode *split = dynstring_split(base, test, 0);
   ssize_t len = list_len(split);

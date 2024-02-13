@@ -80,6 +80,9 @@ DynStringParseDouble dynstring_parse_double(DynString *string);
 // Compares two DynStrings
 bool dynstring_strcmp(DynString *left, DynString *right);
 
+// Compares one DynString with a CString
+bool dynstring_strcmp_c(DynString *left, char *right);
+
 // Updates the value of the string.
 void dynstring_set(DynString *string, char *content);
 
