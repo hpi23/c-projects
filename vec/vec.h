@@ -2,26 +2,33 @@
 #include <assert.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <sys/types.h>
 
 #define DEFAULT_CAPACITY 1
+
+#ifndef VEC_FORMAT_SPECIFIER
 #define VEC_FORMAT_SPECIFIER "%d"
+#endif
+
+#ifndef VEC_VALUE_TYPE
 #define VEC_VALUE_TYPE int
+#endif
 
 #define VEC_VERBOSE(...) printf(__VA_ARGS__)
 // #define VEC_VERBOSE(...)
 
 typedef struct {
   VEC_VALUE_TYPE *values;
-  ssize_t capacity;
-  ssize_t used;
+  uint capacity;
+  uint used;
 } Vec;
 
-Vec *vec_new_with_capacity(ssize_t capacity);
+Vec *vec_new_with_capacity(uint capacity);
 Vec *vec_new();
 void vec_push(Vec *vec, VEC_VALUE_TYPE value);
 void vec_pop(Vec *vec);
 void vec_pop_front(Vec *vec);
 void vec_shrink_to_fit(Vec *vec);
 void vec_print(Vec *vec);
-VEC_VALUE_TYPE vec_index(Vec *vec, ssize_t index);
+VEC_VALUE_TYPE vec_index(Vec *vec, uint index);
 void vec_free(Vec *vec);
