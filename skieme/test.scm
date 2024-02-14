@@ -16,8 +16,8 @@
 ;(display (map fib x))
 
 
-;; (define ppl (list "Ernst" "Neger" "Bambini" "Femboy" "Kollege" "Macbook" "Wooooow" "Sumpfboot"))
-;; (define (greet p) (string-append "<Asala-ma laikum: " p "!>"))
+(define ppl (list "Ernst" "Neyer" "Bambini" "Femboy" "Kollege" "Macbook" "Wooooow" "Sumpfboot"))
+;; (define (greet p) (string-append "<Ehlo: " p "!>"))
 ;; (display (map greet ppl))
 
 ;; (define (add_plus x y) (+ (+ x y) 1))
