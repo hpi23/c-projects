@@ -105,7 +105,20 @@
 
 (newline)
 
-(display (filter_ even? input))
+(define gerade? (lambda (n) (not (odd? n))))
+(define ungerade? (lambda (n) (not (even? n))))
+
+(define (fib2 n)
+    (if (< n 2)
+        n
+        (+ (fib (- n 2)) (fib (- n 1)))
+    )
+)
+
+(display (fib2 10))
+(newline)
+
+(display (filter_ gerade? input))
 
 ;;(display (srt (list 3 2 1)))
 ;;(display (srt (list 3 5 2 1)))
