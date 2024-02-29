@@ -43,7 +43,7 @@ int main(void) {
   list_delete_index(list, 0);
   list_print(list);
 
-  list_delete_index(list, 5);
+  list_delete_index(list, 1);
   list_print(list);
 
   // list_delete_index(list, 0);

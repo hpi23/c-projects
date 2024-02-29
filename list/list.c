@@ -87,10 +87,8 @@ void list_delete_index(struct ListNode *list, ssize_t index) {
 
   ListNode *prev = NULL;
 
-  for (int count = 0; (list != NULL && list->is_initialized) && count <= index;
-       count++) {
+  for (int count = 0; (list != NULL && list->is_initialized) && count <= index; count++) {
     if (index == count) {
-
       if (index == 0) {
         if (list->next != NULL) {
           *list = *list->next;
@@ -104,8 +102,8 @@ void list_delete_index(struct ListNode *list, ssize_t index) {
       return;
     }
 
-    list = list->next;
     prev = list;
+    list = list->next;
   }
 
   puts("list_delete_index(): Invalid index");
