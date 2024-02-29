@@ -42,10 +42,14 @@ int main(void) {
   list_print(list);
   list_delete_index(list, 0);
   list_print(list);
-  list_delete_index(list, 0);
+
+  list_delete_index(list, 5);
   list_print(list);
-  list_delete_index(list, 0);
-  list_print(list);
+
+  // list_delete_index(list, 0);
+  // list_print(list);
+  // list_delete_index(list, 0);
+  // list_print(list);
 
   // list_free(list);
 }

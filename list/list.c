@@ -101,11 +101,13 @@ void list_delete_index(struct ListNode *list, ssize_t index) {
         prev->next = list->next;
         free(list);
       }
-
       return;
     }
 
     list = list->next;
     prev = list;
   }
+
+  puts("list_delete_index(): Invalid index");
+  abort();
 }
