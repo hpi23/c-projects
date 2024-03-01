@@ -6,7 +6,7 @@ OBJ_FILES := $(patsubst $(SRC_DIR)/%.c,$(OBJ_DIR)/%.o,$(SRC_FILES))
 archiver := ar
 gcc := gcc
 
-libSAP.a: $(OBJ_FILES)
+libList.a: $(OBJ_FILES)
 	@echo $(OBJ_FILES)
 	$(archiver) -cq libList.a $(OBJ_FILES)
 

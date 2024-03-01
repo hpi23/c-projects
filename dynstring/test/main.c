@@ -118,7 +118,6 @@ int main() {
   //
   // return 0;
 
-
   // DynString *to_split = dynstring_from("Relevo Schale");
   // DynString *what = dynstring_from("vo");
   // ListNode *res = dynstring_split(to_split, what, 0);
@@ -133,9 +132,14 @@ int main() {
   //   dynstring_free(curr.value);
   // }
 
-  DynString * print_test = dynstring_from("große Schale, Relevo Schale");
-  bool cont = dynstring_contains(print_test, dynstring_from("vo"));
-  printf("%d\n", cont);
+  // DynString * print_test = dynstring_from("große Schale, Relevo Schale");
+  // bool cont = dynstring_contains(print_test, dynstring_from("vo"));
+  // printf("%d\n", cont);
+
+  DynString *foo = dynstring_from("hi");
+  for (int i = 0; i < 10; i ++)
+    dynstring_print(foo);
+  dynstring_free(foo);
 
   return 0;
 }
