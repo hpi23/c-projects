@@ -27,7 +27,7 @@ void vec_push(Vec *vec, VEC_VALUE_TYPE value) {
       new_capacity = 1;
     }
 
-    VEC_VERBOSE("vec: growing from old capacity %uld to new capacity: %uld\n",
+    VEC_VERBOSE("vec: growing from old capacity %d to new capacity: %d\n",
                 vec->capacity, new_capacity);
     vec_set_size(vec, new_capacity);
   }
@@ -77,7 +77,7 @@ void vec_shrink_to_fit(Vec *vec) {
     new_capacity = 1;
   }
 
-  VEC_VERBOSE("vec: shrinking from old size %uld to new size of %uld\n",
+  VEC_VERBOSE("vec: shrinking from old size %uld to new size of %d\n",
               vec->capacity, new_capacity);
   vec_set_size(vec, new_capacity);
 }
@@ -101,6 +101,30 @@ VEC_VALUE_TYPE vec_index(Vec *vec, uint index) {
 
   return vec->values[index];
 }
+
+VEC_VALUE_TYPE vec_remove(Vec *vec, size_t index) {
+  assert(index >= 0 && index < vec->used);
+
+  if (vec->used == 0) {
+    return -1;
+  }
+
+  if (index == vec->used - 1) {
+    VEC_VALUE_TYPE old = vec_index(vec, vec->used - 1);
+    vec_pop(vec);
+    return old;
+  }
+
+  VEC_VALUE_TYPE element = vec_index(vec, index);
+
+  uint remaining_bytes = (vec->used - index - 1) * sizeof(VEC_VALUE_TYPE);
+
+  memcpy(&vec->values[index], &vec->values[index + 1], remaining_bytes);
+
+  vec->used--;
+
+  return element;
+};
 
 void vec_free(Vec *vec) {
   free(vec->values);
