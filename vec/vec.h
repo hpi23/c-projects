@@ -15,8 +15,14 @@
 #define VEC_VALUE_TYPE void*
 #endif
 
-//#define VEC_VERBOSE(...) printf(__VA_ARGS__)
-#define VEC_VERBOSE(...)
+#define VEC_IS_VERBOSE false
+
+#if VEC_IS_VERBOSE
+#define VEC_VERBOSE(...) printf(__VA_ARGS__)
+#else
+#define VEC_VERBOSE(...) // (__VA_ARGS__)
+#endif
+
 
 typedef struct {
   VEC_VALUE_TYPE *values;
