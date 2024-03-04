@@ -160,7 +160,8 @@ void dynstring_repeat(DynString *string, ssize_t n) {
     return;
   }
 
-  ssize_t new_size = string->length * n;
+  ssize_t old_size = string->length;
+  ssize_t new_size = old_size * n;
   while (string->capacity < new_size) {
     string->capacity *= 2;
   }
@@ -168,7 +169,7 @@ void dynstring_repeat(DynString *string, ssize_t n) {
   dynstring__internal_grow(string);
 
   for (int i = 0; i < n; i++) {
-    memcpy(&string->internal_str[i], string->internal_str, string->length);
+    memcpy(&string->internal_str[i * old_size], string->internal_str, old_size);
   }
 
   string->length = new_size;

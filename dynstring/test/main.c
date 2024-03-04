@@ -137,8 +137,8 @@ int main() {
   // printf("%d\n", cont);
 
   DynString *foo = dynstring_from("hi");
-  for (int i = 0; i < 10; i ++)
-    dynstring_print(foo);
+  dynstring_repeat(foo, 3);
+  dynstring_print(foo);
   dynstring_free(foo);
 
   return 0;
