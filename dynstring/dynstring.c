@@ -13,9 +13,8 @@
 
 void dynstring__internal_grow(DynString *string) {
   char *old_ptr = string->internal_str;
-  ssize_t old_len = string->length;
   string->internal_str = malloc(sizeof(char) * string->capacity);
-  memcpy(string->internal_str, old_ptr, old_len);
+  memcpy(string->internal_str, old_ptr, string->length);
   free(old_ptr);
 }
 
