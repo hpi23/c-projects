@@ -51,24 +51,19 @@ typedef struct {
   void (*set_age)(int64_t new_age);
 } Dog;
 
-void dog_print_age(Dog * dog) {
-  printf("Printing dog age: %ld...\n", dog->age);
-}
+void dog_print_age(Dog *dog) { printf("Printing dog age: %ld...\n", dog->age); }
 
-int dog_get_age(Dog * dog) {
-  return dog->age;
-}
+int dog_get_age(Dog *dog) { return dog->age; }
 
-void dog_set_age(Dog * dog, int new_age) {
-    dog->age = new_age;
-}
+void dog_set_age(Dog *dog, int new_age) { dog->age = new_age; }
 
 //
 // End dog functions.
 //
 
 Dog *dog_new(int age) {
-  // This is needed so that the holes can be patched (holes are in the original code, not the copied one).
+  // This is needed so that the holes can be patched (holes are in the original
+  // code, not the copied one).
   if (page_rwe(patch_dog_print_age_fn) == -1) {
     fprintf(stderr, "Error while changing page permissions of foo(): %s\n",
             strerror(errno));
@@ -86,10 +81,11 @@ Dog *dog_new(int age) {
   // Then copy the incomplete function over, then patch the holes.
 
   // Function size required for `memcpy`
-  uint64_t print_age_fn_len = (uint64_t)patch_dog_print_age_end - (uint64_t)patch_dog_print_age_fn;
+  uint64_t print_age_fn_len =
+      (uint64_t)patch_dog_print_age_end - (uint64_t)patch_dog_print_age_fn;
 
   // Allocate space for new function.
-  void * print_age_new_fn = malloc(print_age_fn_len);
+  void *print_age_new_fn = malloc(print_age_fn_len);
 
   // Patch holes in the functions.
   *(uint64_t *)dog_print_age_fn_hole = (uint64_t)&dog_print_age;
@@ -102,7 +98,8 @@ Dog *dog_new(int age) {
     exit(1);
   }
 
-  // Copy old function (with patches) to new memory location to make patches 'persistent'.`
+  // Copy old function (with patches) to new memory location to make patches
+  // 'persistent'.`
   memcpy(print_age_new_fn, patch_dog_print_age_fn, print_age_fn_len);
 
   // Use the new function as the `print_age` function on the new object.
@@ -112,9 +109,10 @@ Dog *dog_new(int age) {
   // Get age.
   //////////////////////////////////
 
-  uint64_t get_age_fn_len = (uint64_t)patch_dog_get_age_end - (uint64_t)patch_dog_get_age_fn;
+  uint64_t get_age_fn_len =
+      (uint64_t)patch_dog_get_age_end - (uint64_t)patch_dog_get_age_fn;
 
-  void * get_age_new_fn = malloc(get_age_fn_len);
+  void *get_age_new_fn = malloc(get_age_fn_len);
 
   *(uint64_t *)dog_get_age_fn_hole = (uint64_t)&dog_get_age;
   *(uint64_t *)dog_get_age_obj_hole = (uint64_t)dog_ptr;
@@ -133,9 +131,10 @@ Dog *dog_new(int age) {
   // Set age.
   //////////////////////////////////
 
-  uint64_t set_age_fn_len = (uint64_t)patch_dog_set_age_end - (uint64_t)patch_dog_set_age_fn;
+  uint64_t set_age_fn_len =
+      (uint64_t)patch_dog_set_age_end - (uint64_t)patch_dog_set_age_fn;
 
-  void * set_age_new_fn = malloc(set_age_fn_len);
+  void *set_age_new_fn = malloc(set_age_fn_len);
 
   *(uint64_t *)dog_set_age_fn_hole = (uint64_t)&dog_set_age;
   *(uint64_t *)dog_set_age_obj_hole = (uint64_t)dog_ptr;
@@ -158,10 +157,25 @@ Dog *dog_new(int age) {
 //
 
 int main() {
-  uint64_t fn_len = (uint64_t)patch_dog_print_age_end - (uint64_t)patch_dog_print_age_fn;
-  printf("start: %p; addr_hole: %p; fn_hole: %p; end: %p; len=%lu\n", patch_dog_print_age_fn, &dog_print_age_obj_hole, &dog_print_age_fn_hole,
-         patch_dog_print_age_end, fn_len);
+  printf("print_start: %p; print_obj_hole: %p; print_fn_hole: %p; "
+         "print_fn_end: %p; print_len=%lu\n",
+         patch_dog_print_age_fn, &dog_print_age_obj_hole,
+         &dog_print_age_fn_hole, patch_dog_print_age_end,
+         (uint64_t)patch_dog_print_age_end - (uint64_t)patch_dog_print_age_fn);
 
+  printf("get_start: %p; get_obj_hole: %p; get_fn_hole: %p; "
+         "get_fn_end: %p; get_len=%lu\n",
+         patch_dog_get_age_fn, &dog_get_age_obj_hole,
+         &dog_get_age_fn_hole, patch_dog_get_age_end,
+         (uint64_t)patch_dog_get_age_end - (uint64_t)patch_dog_get_age_fn);
+
+  printf("set_start: %p; set_obj_hole: %p; set_fn_hole: %p; "
+         "set_fn_end: %p; set_len=%lu\n",
+         patch_dog_set_age_fn, &dog_set_age_obj_hole,
+         &dog_set_age_fn_hole, patch_dog_set_age_end,
+         (uint64_t)patch_dog_set_age_end - (uint64_t)patch_dog_set_age_fn);
+
+  puts("==== Program start ====");
 
   Dog *dog1 = dog_new(18);
   dog1->print_age();
@@ -178,6 +192,11 @@ int main() {
   dog2->set_age(69);
 
   printf("Dog 2 is now %ld years old.\n", dog2->get_age());
+
+  dog1->set_age(4711);
+
+  printf("Dog 1 is now %ld years old.\n", dog1->get_age());
+  dog1->print_age();
 
   return 0;
 }
